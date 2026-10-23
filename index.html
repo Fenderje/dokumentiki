@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<style>
+  /* Базовый сброс: на claude.ai его добавляла платформа, здесь задаём сами */
+  :root {
+    color-scheme: light;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  body { margin: 0; font: 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+</style>
+<title>Скоринг партнёрского менеджера</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Caveat:wght@700&display=swap">
+<style>
+  /* Тёмная лента Звонка; светлая карточка-таблица врезается блоком со скруглением 70 */
+  :root {
+    --bg: #1C1C1C;
+    --surface: #242424;
+    --surface-2: #2E2E2E;
+    --line: #3A3A3A;
+    --fg: #F2F2F3;
+    --muted: #9A9A9E;
+    --accent: #FF7545;
+    --accent-soft: rgba(255, 117, 69, .14);
+    --good: #4FBF8B;
+    --warn: #E8B84B;
+    --bad: #E06A5A;
+    --bar-off: #3A3A3A;
+    --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --hand: "Caveat", "Inter", cursive;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #EEEFF5;
+      --surface: #FFFFFF;
+      --surface-2: #F4F5F9;
+      --line: #DFE0E8;
+      --fg: #1C1C1C;
+      --muted: #6B6C76;
+      --accent: #E85A28;
+      --accent-soft: rgba(232, 90, 40, .12);
+      --good: #2E9B6A;
+      --warn: #B88A1C;
+      --bad: #C84A38;
+      --bar-off: #DFE0E8;
+      color-scheme: light;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #EEEFF5;
+    --surface: #FFFFFF;
+    --surface-2: #F4F5F9;
+    --line: #DFE0E8;
+    --fg: #1C1C1C;
+    --muted: #6B6C76;
+    --accent: #E85A28;
+    --accent-soft: rgba(232, 90, 40, .12);
+    --good: #2E9B6A;
+    --warn: #B88A1C;
+    --bad: #C84A38;
+    --bar-off: #DFE0E8;
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 28px 56px;
+  }
+
+  /* ---- Шапка ---- */
+  header { position: relative; padding-block: 8px 0; }
+  .eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 10px;
+  }
+  h1 {
+    font-size: clamp(28px, 5.4vw, 46px);
+    line-height: 1.08; font-weight: 700; letter-spacing: -.02em;
+    margin: 0 0 14px; text-wrap: balance; max-width: 18ch;
+  }
+  .lede { color: var(--muted); max-width: 64ch; margin: 0 0 4px; font-size: 16px; }
+  .lede strong { color: var(--fg); font-weight: 600; }
+  .curve { display: block; width: 100%; height: 10px; margin: 26px 0 0; overflow: visible; }
+
+  /* ---- Сводка ---- */
+  .stats {
+    display: grid; gap: 10px; margin: 26px 0 0;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+  .stat {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 20px; padding: 14px 16px; min-width: 0;
+  }
+  .stat b {
+    display: block; font-size: 28px; line-height: 1.1; font-weight: 700;
+    font-variant-numeric: tabular-nums; letter-spacing: -.02em;
+  }
+  .stat span { font-size: 12.5px; color: var(--muted); }
+  .stat.is-accent b { color: var(--accent); }
+
+  /* ---- Фильтры ---- */
+  .controls {
+    display: flex; flex-wrap: wrap; gap: 18px 28px;
+    align-items: flex-end; margin: 34px 0 16px;
+  }
+  .group { min-width: 0; }
+  .group > p {
+    margin: 0 0 7px; font-size: 11px; font-weight: 600; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font: inherit; font-size: 13px; font-weight: 500;
+    background: var(--surface); color: var(--fg);
+    border: 1px solid var(--line); border-radius: 20px;
+    padding: 7px 14px; cursor: pointer; transition: .15s;
+  }
+  .chip:hover { border-color: var(--accent); }
+  .chip[aria-pressed="true"] {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+  }
+  .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---- Таблица ---- */
+  .tablecard {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 28px; overflow: hidden;
+  }
+  .scroller { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 820px; }
+  thead th {
+    text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted);
+    padding: 14px 14px; border-bottom: 1px solid var(--line);
+    background: var(--surface-2); white-space: nowrap;
+  }
+  thead th.num { text-align: right; }
+  tbody td {
+    padding: 13px 14px; border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  tr.row { cursor: pointer; }
+  tr.row:hover td { background: var(--surface-2); }
+  tr.row.open td { background: var(--accent-soft); }
+  .who { display: flex; align-items: center; gap: 11px; min-width: 0; }
+  .rank {
+    flex: none; width: 26px; height: 26px; border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums;
+    background: var(--surface-2); color: var(--muted); border: 1px solid var(--line);
+  }
+  tr.row.t-A .rank { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .who-text { min-width: 0; }
+  .who-text b { display: block; font-weight: 600; font-size: 14.5px; }
+  .who-text span { display: block; font-size: 12.5px; color: var(--muted); }
+  .badge {
+    display: inline-block; font-size: 11.5px; font-weight: 600;
+    padding: 3px 9px; border-radius: 20px; white-space: nowrap;
+  }
+  .badge.hr { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent); }
+  .badge.ag { background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
+  .city { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .money { font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .money.over { color: var(--bad); font-weight: 600; }
+  .score { text-align: right; white-space: nowrap; }
+  .score b { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .score i { font-style: normal; font-size: 12px; color: var(--muted); }
+  .tier {
+    display: inline-grid; place-items: center; width: 22px; height: 22px;
+    border-radius: 7px; font-size: 12px; font-weight: 700;
+  }
+  .tier.A { background: var(--good); color: #0d1f17; }
+  .tier.B { background: var(--warn); color: #231c05; }
+  .tier.C { background: var(--bar-off); color: var(--muted); }
+  .chev { color: var(--muted); font-size: 12px; transition: transform .18s; display: inline-block; }
+  .cvlink {
+    color: var(--accent); text-decoration: none; font-size: 12.5px; font-weight: 600;
+    border: 1px solid var(--line); border-radius: 20px; padding: 4px 10px;
+    white-space: nowrap; display: inline-block; transition: .15s;
+  }
+  .cvlink:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .cvlink:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .cvline { margin: -6px 0 14px; }
+  tr.row.open .chev { transform: rotate(90deg); color: var(--accent); }
+
+  /* ---- Раскрытая карточка ---- */
+  tr.detail > td { padding: 0; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+  .panel { padding: 18px 16px 22px; display: grid; gap: 18px; }
+  @media (min-width: 760px) { .panel { grid-template-columns: 1fr 260px; align-items: start; } }
+  .verdict { margin: 0 0 14px; font-size: 15px; }
+  .verdict strong { color: var(--accent); font-weight: 600; }
+  .pm { display: grid; gap: 14px; }
+  @media (min-width: 560px) { .pm { grid-template-columns: 1fr 1fr; } }
+  .pm h4 {
+    margin: 0 0 6px; font-size: 11px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+  .pm .p h4 { color: var(--good); }
+  .pm .m h4 { color: var(--bad); }
+  .pm ul { margin: 0; padding-left: 17px; }
+  .pm li { margin-bottom: 5px; font-size: 13.5px; }
+  .pm li::marker { color: var(--muted); }
+  .bars { display: grid; gap: 8px; }
+  .bars > p {
+    margin: 0 0 2px; font-size: 11px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .bar { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+  .bar span { font-size: 12.5px; color: var(--muted); }
+  .seg { display: flex; gap: 3px; }
+  .seg i { width: 13px; height: 6px; border-radius: 3px; background: var(--bar-off); }
+  .seg i.on { background: var(--accent); }
+  .note { font-family: var(--hand); font-size: 20px; color: var(--accent); line-height: 1.25; }
+
+  /* ---- Низ ---- */
+  .section { margin-top: 48px; }
+  .section h2 {
+    font-size: clamp(20px, 3.2vw, 26px); font-weight: 700; letter-spacing: -.01em;
+    margin: 0 0 8px; text-wrap: balance;
+  }
+  .section > p { color: var(--muted); max-width: 70ch; margin: 0 0 18px; }
+  .qs { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .q {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 20px; padding: 16px 18px; min-width: 0;
+  }
+  .q b { display: block; font-size: 14px; margin-bottom: 6px; }
+  .q p { margin: 0; font-size: 13.5px; color: var(--muted); }
+  .q .ask { color: var(--fg); font-weight: 500; }
+  .method { background: var(--surface); border: 1px solid var(--line); border-radius: 28px; padding: 20px 20px 22px; }
+  .method dl { margin: 0; display: grid; gap: 11px; }
+  @media (min-width: 680px) { .method dl { grid-template-columns: 1fr 1fr; gap: 11px 26px; } }
+  .method dt { font-weight: 600; font-size: 13.5px; }
+  .method dd { margin: 2px 0 0; font-size: 13.5px; color: var(--muted); }
+  footer { margin-top: 40px; color: var(--muted); font-size: 12.5px; }
+  .empty { padding: 34px 18px; text-align: center; color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Звонок · подбор · октябрь 2026</p>
+    <h1>Менеджер по развитию партнёрской сети</h1>
+    <p class="lede">17 кандидатов под <strong>новую редакцию вакансии</strong>: упор на аутрич, скаутинг сегментов и партнёрские продажи, а не на формирование условий и договорную работу. Главный фильтр оценки — находил ли человек партнёров сам и пачками, а не вёл ли пять согласованных партнёрств.</p>
+    <svg class="curve" viewBox="0 0 1180 10" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 8 C 260 8, 300 2, 560 2 S 920 8, 1180 3" fill="none" stroke="#FF7545" stroke-width="8" stroke-linecap="round"/>
+    </svg>
+  </header>
+
+  <div class="stats">
+    <div class="stat is-accent"><b id="s-a">4</b><span>приоритет A — звать первыми</span></div>
+    <div class="stat"><b id="s-b">5</b><span>приоритет B — с оговорками</span></div>
+    <div class="stat"><b id="s-c">8</b><span>приоритет C — подходят слабо</span></div>
+    <div class="stat"><b>9 / 8</b><span>от агентства / от нашего HR</span></div>
+  </div>
+
+  <div class="controls">
+    <div class="group">
+      <p>Источник</p>
+      <div class="chips" id="f-src">
+        <button class="chip" type="button" data-v="all" aria-pressed="true">Все</button>
+        <button class="chip" type="button" data-v="ag" aria-pressed="false">Агентство</button>
+        <button class="chip" type="button" data-v="hr" aria-pressed="false">Наш HR</button>
+      </div>
+    </div>
+    <div class="group">
+      <p>Офис</p>
+      <div class="chips" id="f-city">
+        <button class="chip" type="button" data-v="all" aria-pressed="true">Все</button>
+        <button class="chip" type="button" data-v="МСК" aria-pressed="false">Москва</button>
+        <button class="chip" type="button" data-v="КЗН" aria-pressed="false">Казань</button>
+      </div>
+    </div>
+    <div class="group">
+      <p>Приоритет</p>
+      <div class="chips" id="f-tier">
+        <button class="chip" type="button" data-v="all" aria-pressed="true">Все</button>
+        <button class="chip" type="button" data-v="A" aria-pressed="false">A</button>
+        <button class="chip" type="button" data-v="B" aria-pressed="false">B</button>
+        <button class="chip" type="button" data-v="C" aria-pressed="false">C</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tablecard">
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Кандидат</th>
+            <th scope="col">Источник</th>
+            <th scope="col">Офис</th>
+            <th scope="col">Ожидания</th>
+            <th scope="col" class="num">Оценка</th>
+            <th scope="col">Приоритет</th>
+            <th scope="col">Резюме</th>
+            <th scope="col"><span aria-hidden="true">&nbsp;</span></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="empty" id="empty" hidden>Под этот фильтр никто не попадает.</div>
+  </div>
+
+  <p class="note" style="margin:14px 0 0">Строку можно развернуть — внутри плюсы, минусы и разбивка по критериям.</p>
+
+  <section class="section">
+    <h2>Что проверить на интервью у топ-5</h2>
+    <p>Три вопроса, которые быстро отделяют хантера от аккаунт-менеджера. На них стоит прогнать всех, кто попал в приоритет A и B.</p>
+    <div class="qs">
+      <div class="q">
+        <b>1. Где взять базу</b>
+        <p class="ask">«Сегмент — авитологи и фрилансеры с b2b-базой. Где вы за два дня возьмёте 100 контактов ЛПР?»</p>
+        <p>Хантер назовёт источники — выдачу, каталоги услуг, Telegram-чаты, профсообщества, конференции — и прикинет конверсию. Аккаунт начнёт про стратегию и позиционирование.</p>
+      </div>
+      <div class="q">
+        <b>2. Экономика партнёра</b>
+        <p class="ask">«Посчитайте вслух выгоду от нашей партнёрки для интегратора amoCRM с 30 клиентами в год».</p>
+        <p>Проверка того самого «умения жить в мире партнёра»: на чём он зарабатывает, что продаёт клиенту следующим шагом, сколько добавит Звонок.</p>
+      </div>
+      <div class="q">
+        <b>3. Цифра активации</b>
+        <p class="ask">«Сколько партнёров вы лично подписали за 12 месяцев и сколько из них привели первого клиента за 60 дней?»</p>
+        <p>Главный разделитель — не подписания, а активация. Если человек помнит только число подписанных, канал он до денег не доводил.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Как считалась оценка</h2>
+    <div class="method">
+      <dl>
+        <dt>Хантинг и аутрич</dt>
+        <dd>Собирал ли базы сам, без готовых списков и входящего потока. Самый тяжёлый критерий.</dd>
+        <dt>Сегменты партнёров</dt>
+        <dd>Digital- и performance-агентства, CRM-интеграторы, лидогенераторы, колл-центры, авитологи — против банков, госсектора и крупных интеграторов.</dd>
+        <dt>IT / SaaS / digital</dt>
+        <dd>Продукт с подпиской и коротким циклом, а не железо, лицензии или финансовые продукты.</dd>
+        <dt>Продажи сложного b2b</dt>
+        <dd>Переговоры с собственниками и РОПами, счёт выгоды в деньгах, доведение до подписания.</dd>
+        <dt>Активация и ко-продажи</dt>
+        <dd>Обучение отдела продаж партнёра, совместные звонки с его клиентом, реанимация уснувших.</dd>
+        <dt>Масштаб сети</dt>
+        <dd>Сколько партнёров реально привёл за год. Семь стратегических за два года и сто за год — разные профессии.</dd>
+      </dl>
+    </div>
+  </section>
+
+  <footer>
+    Резюме агентства обезличены, поэтому кандидаты идут под кодами. Колонка «Резюме» ведёт на PDF в <a class="cvlink" href="https://drive.google.com/drive/folders/1nR9onXuNteIHXHfUU87ulMGCPZZacG3a" target="_blank" rel="noopener">общей папке&nbsp;↗</a> — у кого нет доступа к ней, у того ссылки не откроются. Оценки — по тексту резюме, без интервью и рекомендаций: они показывают, кого звать первым, а не кого брать. Вилка по вакансии — 150–250 тыс. руб. на руки, офис Москва (Савёловская) или Казань (Некрасова).
+  </footer>
+</div>
+
+<script>
+const DATA = [
+  { code:"CV6", role:"Business development manager", co:"Roistat · сквозная аналитика", src:"ag", city:"—", pay:"не указаны", over:false, score:9, tier:"A",
+    bars:[5,5,5,4,4,5],
+    verdict:"Главный кандидат: партнёрская модель Roistat действительно очень похожа на нашу, и аудитория та же — digital- и performance-агентства, веб-студии, интеграторы. Вопросы к нему не про релевантность опыта, а про мотивацию и готовность хантить руками.",
+    plus:["+200 новых партнёров, база ×2, GMV +300% — хантерские цифры, а не сопроводительные","Интеграции с Click.ru, Jivo, Ingate — буквально ваши сегменты","Сократил SLA подключения партнёра в 2 раза, построил сегментацию лидов: срезал 60% нерелевантных без потери конверсии","До IT — 7 лет дистрибуции с мотивационными программами для партнёров: экономику партнёра понимает нутром"],
+    minus:["Опять человек из Roistat: Владиславу, которую мы уволили, брали оттуда же. Совпадение неприятное — зато про неё можно спросить прямо у него","Бэкграунд продажно-биздевовский: надо понять, готов ли он руками скаутить сегменты и собирать лонг-листы, а не только вести переговоры и считать экономику","Ушёл из Roistat в феврале 2026, пробел ~8 месяцев — выяснить причину в первую очередь","Собрал и обучил команду из 6 менеджеров — может целиться в руководящую роль и в вилку выше 250","Английский A1 (для задачи некритично)"] },
+
+  { code:"CV8", role:"Менеджер по работе с партнёрами", co:"CloudPayments · эквайринг", src:"ag", city:"—", pay:"не указаны", over:false, score:8, tier:"A",
+    bars:[5,5,4,3,3,4],
+    verdict:"Лучшая скорость хантинга на единицу стажа. Сегменты партнёров в резюме перечислены буквально вашими словами.",
+    plus:["100+ партнёров за год, +80% активной базы, перевыполнение плана по привлечению до 160% в квартал","Холодный поиск своими руками, оптимизация скриптов, награда Impact of the Year","Партнёры — CMS/CRM-платформы, digital-агентства, разработчики, бухгалтерские сервисы","Продавала эквайринг и облачные кассы: сложный технический продукт в SMB через канал","Самостоятельно настраивала AmoCRM, план продаж 120%+ несколько кварталов подряд"],
+    minus:["В партнёрке всего 1 год 11 месяцев: до этого — чистые продажи франшиз, а до 2019 года вообще другая сфера","Смутный карьерный трек: отель, потом франшизы, потом сразу такой рост. Последнее место обязательно валидировать рекомендациями","При 160% плана по привлечению непонятно, почему уходит — это первый вопрос на встрече","Реального b2b-опыта ~3 года: крепкий middle, не senior; вопрос веса в переговорах с собственниками агентств","Не проверено, вытянет ли самостоятельную нарезку сегментов без руководителя сверху"] },
+
+  { code:"CV4", role:"Руководитель партнёрского и агентского направления", co:"Fintech", src:"ag", city:"—", pay:"не указаны", over:false, score:7.5, tier:"A",
+    bars:[5,2,1,5,5,4],
+    verdict:"Самый «построитель канала руками». Единственная, кто делала вашу задачу целиком — от нуля до первых продаж партнёров.",
+    plus:["За 3 месяца собрала агентскую базу с нуля; обороты направления превысили розничный и корпоративный блоки","Цикл тренингов для внешних партнёров дал +30% к конверсии сделок — это и есть «научить отдел продаж партнёра»","Сильные личные продажи: ВТБ 120%+ плана квартал за кварталом, 300+ презентаций, 30 корпклиентов","В навыках прямо указаны холодные продажи и разработка скриптов"],
+    minus:["Весь опыт — финсектор; экономику digital-агентств и интеграторов amoCRM придётся осваивать с нуля","Титул руководителя и опыт управления 100+ сотрудниками — проверить готовность быть единственным исполнителем","Риск ожиданий выше вилки"] },
+
+  { code:"CV3", role:"Менеджер по работе с партнёрами", co:"ЛАНИТ · ИБ и Microsoft Cloud", src:"ag", city:"—", pay:"не указаны", over:false, score:6.5, tier:"B",
+    bars:[4,2.5,4,4.5,4.5,4],
+    verdict:"Самый профессиональный «канальщик» выборки, но весь её канал — партнёры-гиганты, госсектор и enterprise. Под такой формат мы продукт не адаптируем и на чужом контуре его не развернём.",
+    plus:["12 лет чистых канальных продаж, выручка ИБ-направления ×2, кварталы 95–105%","+15–20 крупных интеграторов за 12 месяцев, реактивация уснувших партнёров","Deal registration, rebate-механики, координация пресейла — в точности ваш блок активации","Сертифицированный тренер Microsoft: обучение партнёров поставлено"],
+    minus:["Работала только с огромными партнёрами: такие сделки предполагают адаптацию продукта под заказчика и разворачивание на его контуре — мы этого не умеем и не планируем","Канал — enterprise, госсектор и импортозамещение: длинные сделки, пилоты, пресейл под каждый проект","Партнёры там уже существуют как рынок: их не нужно выскребать из каталогов и Telegram-чатов","Непонятный пробел май 2021 — декабрь 2023 между двумя периодами в ЛАНИТ"] },
+
+  { code:"HR7", role:"Менеджер развития бизнеса, ЛатАм", co:"НТЦ ТЕКО · промышленная электроника", src:"hr", city:"КЗН", pay:"не указаны, готов в МСК", over:false, score:5, tier:"C",
+    bars:[5,1.5,2,4.5,3.5,4.5],
+    verdict:"Хантерская привычка настоящая, и по ней он один из лучших в выборке. Но сети он строил из дистрибьюторов промышленного оборудования на экспортных рынках, и от нашей задачи это отличается всем, кроме самого умения искать.",
+    plus:["Дистрибьюторская сеть в 9 странах ЛатАм с нуля, рост экспорта +421%","Исследование рынка, сегментация, стратегия выхода — ровно навык «разложить рынок и собрать лонг-лист»","Переговоры с собственниками и первыми лицами, контракт на оснащение 11 000 вышек телеком-оператору Колумбии","Нанял и вёл команду из 4 человек в регионе; технический бэкграунд, понимает API, SDK и интеграции","Испанский и английский C2, готов к переезду в Москву"],
+    minus:["Промышленная электроника и охранно-пожарная сигнализация, не IT/SaaS/digital","Партнёры — дистрибьюторы оборудования, а не digital-агентства и CRM-интеграторы","Нет опыта на внутреннем рынке РФ: весь трек — экспорт","Подписочной экономики и SaaS-метрик в опыте нет"] },
+
+  { code:"CV5", role:"Региональный менеджер партнёрской программы", co:"Softline", src:"ag", city:"МСК", pay:"не указаны", over:false, score:7, tier:"B",
+    bars:[4,3,3,4.5,3.5,4],
+    verdict:"Хорошая скорость привлечения, но железо и крупные чеки. Темп партнёра на 15 клиентов ему незнаком.",
+    plus:["50 партнёров за год, pipeline 200 млн, полный цикл от первого контакта до подписания","+50% продаж за счёт реанимации неактивной базы — прямо ваша задача по уснувшим","Работа с интеграторами, дистрибьюторами и реселлерами; Bitrix24 и AmoCRM в руках","Холодные звонки в прошлом опыте, обучение партнёров, участие в запусках продуктов"],
+    minus:["Предыдущие 3 года — СКУД для застройщиков, генподрядчиков и архитектурных бюро","Чеки от 100 млн и госзаказчики: другой ритм сделки","В Softline всего год — переманивать придётся оффером, а не интересом"] },
+
+  { code:"HR2", role:"Менеджер по работе с ключевыми партнёрами", co:"Orion soft · ранее Microsoft", src:"hr", city:"МСК", pay:"не указаны", over:false, score:6.5, tier:"B",
+    bars:[3,3,4.5,4.5,5,4],
+    verdict:"Сильнейшая в выборке по активации и развитию партнёра, слабая по скаутингу. 22 года канала, из них 6,5 в Microsoft.",
+    plus:["Выручка через ТОП-интеграторов +30% за год, один партнёр вырос ×4 за счёт обучения его команды и индивидуальной программы развития","20+ обучающих мероприятий для команд интеграторов, прирост успешных проектов +40%","Конверсия регистраций в сделки +40%, прозрачная воронка, регулярные pipe-review","В Гравитоне запустила работу вендора с ключевыми ИТ-партнёрами с нуля","Аккаунт-планы, мотивация и обучение партнёров поставлены как система ещё в Microsoft"],
+    minus:["Классический enterprise-канал у вендора: партнёры крупные и известные, скаутить их не нужно","Холодный аутрич в профсообществах и чатах авитологов — чужой мир","Грейд и 22 года опыта: вилка почти наверняка выше 250, плюс риск, что на хантинге станет скучно"] },
+
+  { code:"HR1", role:"Старший менеджер по работе с партнёрами", co:"АЛМИ ПАРТНЕР · ранее Аксофт, VOXYS", src:"hr", city:"МСК", pay:"350 000 ₽", over:true, score:6, tier:"B",
+    bars:[4,2.5,3.5,4.5,3,3.5],
+    verdict:"Единственная в выборке, кто продавала именно голосовых роботов и услуги колл-центра. Но ожидания 350 тыс. выходят за вилку в полтора раза.",
+    plus:["В VOXYS — активные продажи аутсорсингового контактного центра, голосовых роботов и чат-ботов: ваш продукт и ваш сегмент партнёров одновременно","Там же формировала новую клиентскую базу и продавала по ней вхолодную","Канальный опыт у дистрибутора: оборот 2,2 млрд, 100% покрытие базы партнёров, оборот YoY 129%","Воронка 880 млн и 50+ проектов за 9 месяцев на текущем месте","Переговоры на уровне CEO и CEO-1, защита проектов внутри заказчика"],
+    minus:["Ожидания 350 000 ₽ при вилке 150–250 — разговор бессмысленен без движения с одной из сторон","Enterprise-темп: цикл сделки 4–6 месяцев, госзакупки по 223 и 44-ФЗ","Четыре места за последние 4 года (9, 17, 9 и 20 месяцев) — флажок по удержанию","Партнёры — крупные системные интеграторы и реселлеры, не длинный хвост агентств"] },
+
+  { code:"HR5", role:"Customer Success / Partner Manager", co:"Яндекс Команда для бизнеса", src:"hr", city:"КЗН", pay:"не указаны", over:false, score:6, tier:"B",
+    bars:[4,2,4.5,3,4.5,4.5],
+    verdict:"Крепкий кандидат на казанский офис с правильными цифрами, но целевая роль у неё — удержание, а не охота.",
+    plus:["100+ новых b2b-партнёров за год при портфеле в 240 действующих","Онбординг и обучение партнёров работе с продуктом — ваш блок активации","Retention 98%, рост GMV направления 70%, запуск 9 регионов и международного направления в Турции","SaaS-платформа и полная воронка продаж от первого контакта до сделки в предыдущей роли","Казань, готова к переезду, английский C1"],
+    minus:["Партнёры — компании проката автомобилей: сегмент не пересекается с вашим ни в чём","Целевая роль в резюме — Customer Success, то есть удержание и сопровождение, а не хантинг","Коммерческого стажа ~2 года: до Яндекса недвижимость, репетиторство, онлайн-школа, администратор салона","Ищет удалёнку или гибрид, у вас офис"] },
+
+  { code:"CV1", role:"Старший менеджер по развитию бизнеса", co:"МТС Бизнес · ранее RecFaces", src:"ag", city:"—", pay:"не указаны", over:false, score:5, tier:"C",
+    bars:[3,2,3.5,3,3.5,2],
+    verdict:"На бумаге близко — «поиск воронки партнёров, outreach, follow-up». По сути это именно та часть роли, которой у вас не будет.",
+    plus:["Партнёрская воронка и процессы с нуля, в том числе на рынках ЛАТАМ и Азии","Работала с моделями CPA/CPL/Revenue Share, размещала спецофферы с партнёрами","Обучение и сертификация партнёров, контроль их pipeline","Расчёт юнит-экономики и выгоды партнёра в деньгах"],
+    minus:["Отдельно смущает сам МТС: в огромной структуре и у лидера рынка партнёрство устроено принципиально иначе — партнёры приходят на бренд, за спиной стоят юристы, продукт, маркетинг и аналитика, а сделку во многом продаёт вес компании. У нас канал строится руками с нуля, и имени Звонка в партнёрской среде почти не слышно","Львиная доля опыта — стратегия, регламенты, презентации топ-менеджменту, координация команд через Jira: всё, что у вас уже сделано","7 стратегических партнёров за 2 года — примерно один в квартал, вам нужен темп в разы выше","Партнёры — банки, страховые, hrtech, а не агентства и интеграторы"] },
+
+  { code:"HR3", role:"Менеджер по развитию партнёров / KAM", co:"LIFE PAY · ранее Форвард Лизинг", src:"hr", city:"МСК", pay:"не указаны", over:false, score:6, tier:"B",
+    bars:[3,3.5,3,3,4,2.5],
+    verdict:"Кандидат «на помучать»: опыт очень разный — от построения отдела продаж в агентстве до партнёрских и агентских сетей. Весь вопрос интервью — готова ли она сама продавать и искать или привыкла сопровождать уже согласованное.",
+    plus:["Опыт «с той стороны»: три года в рекламном агентстве полного цикла — выстроила отдел продаж из 13 человек, средний чек с 500 тыс. до 2,5 млн, внедрила AmoCRM","Обучающий портал для 5000+ продавцов федеральных сетей дал +18% конверсии в договор — настоящая активация","В «Цунами» развивала партнёрскую сеть с запуска: выход на ЛПР, 300+ контактов в Битрикс24","Ранее — партнёрская сеть из 4 брокеров и 800 агентов, план перевыполнен вдвое"],
+    minus:["Последние роли — 7 федеральных партнёров, 6 дистрибьюторов, один банк: сопровождение, а не хантинг десятков","Очень много про регламенты, SLA, бэклог, дебиторку и отчётность — то, от чего вы в новой редакции ушли","Холодного аутрича на ЛПР в явном виде в опыте нет","Частая смена мест в последние два года"] },
+
+  { code:"HR8", role:"Менеджер по развитию партнёрского бизнеса", co:"ICL Services · продукт Колибри-АРМ", src:"hr", city:"КЗН", pay:"не указаны", over:false, score:4.5, tier:"C",
+    bars:[2.5,3,4,3,3,2],
+    verdict:"Партнёрская модель российского IT-продукта с нуля и редкая техническая грамотность, но в резюме нет ни одной цифры результата.",
+    plus:["Сформировала партнёрскую модель продаж продукта и процессы регистрации сделок и передачи лидов","Работа с системными интеграторами, участие в пилотах, формирование требований к продукту от рынка","Говорит языком и бизнеса, и инженера — полезно для экспертной части в ко-продажах по ИИ-звонкам","Казань, готова к переезду по России, 14 лет в IT"],
+    minus:["Ни одной цифры: ни партнёров, ни выручки, ни выполнения плана","Сильный уклон в процессы, коммерческую политику, скидки и лицензирование — то есть в «условия и бумажки»","Enterprise и госсектор, Linux-миграции: длинные сделки","Вся карьера внутри одной компании 14 лет, из них 5 лет системным администратором и 5 лет в пресейле — активный хантинг может быть незнаком вовсе","Ищет удалёнку или гибрид"] },
+
+  { code:"CV7", role:"Аккаунт-менеджер партнёрского канала", co:"Сравни.ру · ранее admitad", src:"ag", city:"—", pay:"не указаны", over:false, score:5, tier:"C",
+    bars:[2.5,3,3,2.5,3,3],
+    verdict:"Партнёрский рынок понимает — 6 лет в CPA-сети. Но функция везде аккаунтинг, а не хантинг.",
+    plus:["6 лет в admitad: управление отношениями с рекламодателями, перевод двух крупных на эксклюзив","20+ новых партнёров за полтора года в Сравни.ру, включая Озон Банк, Мегафон, НБКИ","Понимает юнит-экономику размещений и партнёрских кампаний"],
+    minus:["Ведение и развитие существующих клиентов, аналитика кампаний, upsell, дебиторка — не поиск","Привлечённые партнёры — крупные бренды, которые приходят к известным площадкам сами; у Звонка такого рычага в партнёрке пока нет","До 2018 года — 10 лет администратором развлекательных центров: коммерческого стажа меньше, чем заявленные «15+ лет опыта»"] },
+
+  { code:"CV2", role:"Менеджер по развитию партнёрств", co:"Insight AI · ранее ТАСС, Эверест", src:"ag", city:"—", pay:"не указаны", over:false, score:5.5, tier:"B",
+    bars:[3,2.5,3.5,2,2.5,2],
+    verdict:"Заявляет весь цикл, включая поиск, и качала партнёрку для компании, которая делает кастомные AI-решения, — модель ближе к нашей, чем у большинства выборки. Но про сам поиск в резюме почти ничего.",
+    plus:["Заявлен весь цикл своими словами: «от поиска партнёров среди IT-компаний и первичных встреч до обсуждения условий сотрудничества и заключения договоров»","Партнёрка для AI-компании: продукт, аргументация и тип партнёра близки к нашим — погружение займёт меньше времени, чем у остальных","Сама писала шаблоны писем и сообщений для аутрича, то есть аутрич хотя бы вела руками","Тестировала гипотезы по сегментам и корректировала стратегию по результатам — нужный образ мышления","В ТАСС и «Эвересте» умела навести порядок в процессах и выстроить «единое окно»"],
+    minus:["Главная помарка: про поиск рассказано одной строкой — ни источников баз, ни числа касаний, ни конверсии. Это первое, что нужно раскапывать на интервью","Рост сети на 30% при названных 4–5 партнёрах: масштаб сильно меньше нашей задачи","Ни одной цифры по выручке или сделкам; в навыках — MS Office, документооборот, организация мероприятий","В ТАСС и «Эвересте» функция была сопроводительной: документы, оплаты, отчётность, согласования с юристами","Много времени ушло на тендеры и регистрацию в каталогах — полезно, но это не партнёрские продажи"] },
+
+  { code:"HR4", role:"Account Manager / менеджер по сопровождению B2B", co:"TCL Russia · ранее Atos, Canon", src:"hr", city:"МСК", pay:"не указаны", over:false, score:3, tier:"C",
+    bars:[2,1.5,2.5,2,2.5,2],
+    verdict:"Сервисный и delivery-менеджер, а не продавец. «Развитие сети» здесь означает подбор сервисных центров для ремонта техники.",
+    plus:["Сервисная сеть в 15+ городах с нуля за 9 месяцев: подбор, подключение, сопровождение подрядчиков","Сильная операционка: P&L, SLA, NPS, CSAT, бэклог −41%, затраты на провайдера −22%","Апсейлы в действующие проекты на 800 тыс. руб. ежемесячной выручки, удержание Bayer и L'Oréal"],
+    minus:["Партнёры — сервисные подрядчики и дистрибьюторы техники, а не канал продаж","B2B-продажи в его же резюме отмечены как средний уровень; холодного поиска в опыте нет","Шесть лет в Canon — управление запчастями и складом, затем пресейл-расчёты в YADRO: продажи так и не стали основной функцией","Не готов к командировкам"] },
+
+  { code:"CV9", role:"Руководитель клиентского сервиса и привлечения партнёров", co:"Ecourse.studio · ранее Сколково, ФРИИ", src:"ag", city:"—", pay:"не указаны", over:false, score:3, tier:"C",
+    bars:[1.5,1.5,2,2,1.5,1.5],
+    verdict:"Сильный маркетолог-лидогенщик, но не партнёрский продавец. Для отдела маркетинга профиль любопытный, на эту вакансию — мимо.",
+    plus:["Построила маркетинг крупнейшего российского акселератора с нуля за 6 месяцев: 9000+ лидов, CR 11,6%","9 партнёрских соглашений (МТС, Касперский, МГУ, ВШЭ) в рамках программы","Настроенная сквозная аналитика, работа по гипотезам, управление бюджетами от 10 млн"],
+    minus:["Партнёрские соглашения — часть маркетинга акселератора, а не канал продаж","Дальше весь трек — продуктовый маркетинг, подрядчики, мероприятия, лидген","Целевая роль в самом резюме — менеджер по ключевым клиентам","Воронки партнёров в CRM, холодного аутрича на агентства и ко-продаж в опыте нет"] },
+
+  { code:"HR6", role:"Менеджер по работе с партнёрами", co:"ICL Services · закупки", src:"hr", city:"КЗН", pay:"не указаны", over:false, score:1.5, tier:"C",
+    bars:[1,1,2,1,1,1],
+    verdict:"Полная противоположность роли: она покупает, а не продаёт. «Партнёры» в этом резюме — поставщики ТМЦ и лицензий.",
+    plus:["18 лет опыта и надёжность: грамота за результаты года, большой объём договорной работы","Знает закупочные процедуры, RFI/RFP, 223-ФЗ и переговоры об условиях с поставщиками","Казань, IT-компания"],
+    minus:["Вся функция — вендор-менеджмент и закупки: поиск поставщиков, тендеры, претензионная работа, документооборот","Навыки в резюме: работа с поставщиками, контроль поставок, проведение тендеров, b2b-center — ни одного про продажи","Предыдущий опыт — закупки в InnoStage, ТТК, РТ-Информ и АК БАРС, до этого обучение, event и бухгалтер-кассир","Опыта активных продаж и привлечения клиентов нет вообще"] }
+];
+
+const CVLINK = {
+  CV1: "1tJT7XluDPzfLkL31GER-wwMaoYsX-mnH",
+  CV2: "1IWDTEDv5iAz7_uqD00ImnD3V934HFRjs",
+  CV3: "1fzGsURQwgOrrauvg4RadAl3DV4SpjZHQ",
+  CV4: "1TiL-GSgqttFMI2hDhkPK5n-Py-9xKpDy",
+  CV5: "1ZziwdlUDFvZzDASwBLFrNxdhzY27zkvN",
+  CV6: "1xnVp96mYMOJtGeHqT9GWmJpluEMfIp9C",
+  CV7: "1s8VfeXJSjBGu9x0Y28LOeWxfGe2lES2W",
+  CV8: "1bbzHGhdlSbCophBmC-Sqz8VV-jHMPCVa",
+  CV9: "16LOAjOCniY9O0PWICJOVGt2c67UtDNSS",
+  HR1: "18oN6OjcNW1fORtYR56CrUMUngmxo7Ous",
+  HR2: "1pYRFAKZJWbkGDw70O7iBCyxSfyWjdXSf",
+  HR3: "1ZUzOhEWPvXz6I4v61rpPlip87AM6R7Bf",
+  HR4: "1f3_39uq_kY-pTiRgwcUkiCajNJ3u3kN_",
+  HR5: "1rFIdCTVmhnM8lnfqfDgG7V1DcBnaAjFL",
+  HR6: "1XKyClY1gLZqPtOFyK9-XxkP34UoQasS3",
+  HR7: "16EUCblrnZIeGVovMvH3slt6a1LfDEqby",
+  HR8: "1mK_HF8HAGR7MC7JTMFAjCMtSOCZ79Yxr"
+};
+const cvUrl = code => "https://drive.google.com/file/d/" + CVLINK[code] + "/view";
+
+// Порядок в таблице: приоритет, внутри него — оценка, при равенстве сохраняется исходный разбор
+const TIER_ORDER = { A: 0, B: 1, C: 2 };
+const ORIG = new Map(DATA.map((d, i) => [d.code, i]));
+DATA.sort((a, b) =>
+  TIER_ORDER[a.tier] - TIER_ORDER[b.tier] ||
+  b.score - a.score ||
+  ORIG.get(a.code) - ORIG.get(b.code)
+);
+
+const LABELS = ["Хантинг и аутрич","Сегменты партнёров","IT / SaaS / digital","Продажи сложного b2b","Активация и ко-продажи","Масштаб сети"];
+const CITY_FULL = { "МСК": "Москва", "КЗН": "Казань", "—": "не указан" };
+const state = { src: "all", city: "all", tier: "all" };
+const tbody = document.getElementById("tbody");
+const emptyEl = document.getElementById("empty");
+
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+function segs(v) {
+  let out = "";
+  for (let i = 1; i <= 5; i++) out += '<i class="' + (v >= i - 0.4 ? "on" : "") + '"></i>';
+  return '<span class="seg" aria-hidden="true">' + out + "</span>";
+}
+
+function fmtScore(n) {
+  return String(n).replace(".", ",");
+}
+
+function render() {
+  const rows = DATA.filter(d =>
+    (state.src === "all" || d.src === state.src) &&
+    (state.city === "all" || d.city === state.city) &&
+    (state.tier === "all" || d.tier === state.tier)
+  );
+  tbody.innerHTML = rows.map((d, i) => {
+    const bars = d.bars.map((v, k) =>
+      '<div class="bar"><span>' + LABELS[k] + "</span>" + segs(v) + "</div>"
+    ).join("");
+    const plus = d.plus.map(t => "<li>" + esc(t) + "</li>").join("");
+    const minus = d.minus.map(t => "<li>" + esc(t) + "</li>").join("");
+    return (
+      '<tr class="row t-' + d.tier + '" data-i="' + i + '" tabindex="0" role="button" aria-expanded="false">' +
+        '<td><div class="who"><span class="rank">' + (DATA.indexOf(d) + 1) + "</span>" +
+          '<span class="who-text"><b>' + esc(d.code) + " · " + esc(d.role) + "</b><span>" + esc(d.co) + "</span></span></div></td>" +
+        '<td><span class="badge ' + d.src + '">' + (d.src === "hr" ? "Наш HR" : "Агентство") + "</span></td>" +
+        '<td class="city">' + esc(CITY_FULL[d.city] || d.city) + "</td>" +
+        '<td><span class="money' + (d.over ? " over" : "") + '">' + esc(d.pay) + "</span></td>" +
+        '<td class="score"><b>' + fmtScore(d.score) + '</b><i> / 10</i></td>' +
+        '<td><span class="tier ' + d.tier + '">' + d.tier + "</span></td>" +
+        '<td><a class="cvlink" href="' + cvUrl(d.code) + '" target="_blank" rel="noopener" title="Открыть резюме ' + esc(d.code) + ' в Google Drive">PDF&nbsp;↗</a></td>' +
+        '<td><span class="chev" aria-hidden="true">▶</span></td>' +
+      "</tr>" +
+      '<tr class="detail" hidden><td colspan="8"><div class="panel"><div>' +
+        '<p class="verdict">' + esc(d.verdict) + "</p>" +
+        '<p class="cvline"><a class="cvlink" href="' + cvUrl(d.code) + '" target="_blank" rel="noopener">Резюме ' + esc(d.code) + ' в Google Drive&nbsp;↗</a></p>' +
+        '<div class="pm"><div class="p"><h4>Сильные стороны</h4><ul>' + plus + "</ul></div>" +
+        '<div class="m"><h4>Чего не хватает</h4><ul>' + minus + "</ul></div></div>" +
+      '</div><div class="bars"><p>Оценка по критериям</p>' + bars + "</div></div></td></tr>"
+    );
+  }).join("");
+  emptyEl.hidden = rows.length > 0;
+}
+
+function toggle(row) {
+  const detail = row.nextElementSibling;
+  const open = !detail.hidden;
+  detail.hidden = open;
+  row.classList.toggle("open", !open);
+  row.setAttribute("aria-expanded", String(!open));
+}
+
+tbody.addEventListener("click", e => {
+  if (e.target.closest("a")) return;
+  const row = e.target.closest("tr.row");
+  if (row) toggle(row);
+});
+tbody.addEventListener("keydown", e => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const row = e.target.closest("tr.row");
+  if (row) { e.preventDefault(); toggle(row); }
+});
+
+document.querySelectorAll(".chips").forEach(box => {
+  const key = box.id.replace("f-", "");
+  box.addEventListener("click", e => {
+    const btn = e.target.closest(".chip");
+    if (!btn) return;
+    state[key] = btn.dataset.v;
+    box.querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
+    render();
+  });
+});
+
+document.getElementById("s-a").textContent = DATA.filter(d => d.tier === "A").length;
+document.getElementById("s-b").textContent = DATA.filter(d => d.tier === "B").length;
+document.getElementById("s-c").textContent = DATA.filter(d => d.tier === "C").length;
+render();
+</script>
+</body>
+</html>
