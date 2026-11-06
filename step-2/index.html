@@ -98,7 +98,7 @@
 
   .tablecard { background: var(--surface); border: 1px solid var(--line); border-radius: 28px; overflow: hidden; }
   .scroller { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; min-width: 760px; }
+  table { width: 100%; border-collapse: collapse; min-width: 820px; }
   thead th {
     text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
     color: var(--muted); padding: 14px; border-bottom: 1px solid var(--line); background: var(--surface-2); white-space: nowrap;
@@ -127,6 +127,14 @@
   .tier.B { background: var(--warn); color: #231c05; }
   .tier.C { background: var(--bar-off); color: var(--muted); }
   .chev { color: var(--muted); font-size: 12px; transition: transform .18s; display: inline-block; }
+  .cvlink {
+    color: var(--accent); text-decoration: none; font-size: 12.5px; font-weight: 600;
+    border: 1px solid var(--line); border-radius: 20px; padding: 4px 10px;
+    white-space: nowrap; display: inline-block; transition: .15s;
+  }
+  .cvlink:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .cvlink:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .cvline { margin: -6px 0 14px; }
   tr.row.open .chev { transform: rotate(90deg); color: var(--accent); }
 
   tr.detail > td { padding: 0; background: var(--surface-2); border-bottom: 1px solid var(--line); }
@@ -232,6 +240,7 @@
             <th scope="col">Ожидания</th>
             <th scope="col" class="num">Оценка</th>
             <th scope="col">Приоритет</th>
+            <th scope="col">Резюме</th>
             <th scope="col"><span aria-hidden="true">&nbsp;</span></th>
           </tr>
         </thead>
@@ -275,7 +284,7 @@
   </section>
 
   <footer>
-    Резюме обезличены агентством, кандидаты идут под кодами cv1–cv6 той же нумерации, что у агентства — коды первой подборки это отдельный набор, они не пересекаются. Финансовые ожидания — со слов агентства, все шестеро укладываются в вилку 150–250 тыс. руб. на руки (двое просят ниже её нижней границы). Оценки — по тексту резюме, без интервью и рекомендаций.
+    Резюме обезличены агентством, кандидаты идут под кодами cv1–cv6 той же нумерации, что у агентства — коды первой подборки это отдельный набор, они не пересекаются. Колонка «Резюме» ведёт на PDF в <a class="cvlink" href="https://drive.google.com/drive/folders/1WERcB6xF5gb2MszDOAWemLs0zy0eCFM9" target="_blank" rel="noopener">папке второй подборки&nbsp;↗</a> — у кого нет доступа к ней, у того ссылки не откроются. Финансовые ожидания — со слов агентства, все шестеро укладываются в вилку 150–250 тыс. руб. на руки (двое просят ниже её нижней границы). Оценки — по тексту резюме, без интервью и рекомендаций.
   </footer>
 </div>
 
@@ -318,6 +327,16 @@ const DATA = [
     minus:["В партнёрской роли пять месяцев, и это первый коммерческий опыт вообще: до него операционка в Huawei, тексты в Wildberries и методическая работа в детском центре","Ни одной цифры результата: сколько партнёров привлекла, какая выручка — ничего","Частая смена мест: Huawei год и три месяца, Wildberries семь месяцев, Realme пять","Весь опыт — внутри процессов больших корпораций. Самостоятельно систему не строила, и автономная роль без руководителя для неё была бы первой в карьере","В саммари перечислены целевые роли от бизнес-аналитика до специалиста техподдержки — с направлением человек ещё не определился"] }
 ];
 
+const CVLINK = {
+  CV1: "1LIezTKtl_F3mlKDuKjesacvfxRGBapqf",
+  CV2: "1FXJumQGsSw3sUo9yUd4LumlUdxMaIbXj",
+  CV3: "1KKHDgOYzAtaAqvGJxpiDCw_1LfTuhT8c",
+  CV4: "1nwhm5q3pbH4qrYqVYMnnY0TtlRw1scRJ",
+  CV5: "1-NNZgzL8sQnfTjMIfMLMU-OZQV_2rtSO",
+  CV6: "1HZrVjub4PBLvb32UbzGbBWjcqBrzWOLW"
+};
+const cvUrl = code => "https://drive.google.com/file/d/" + CVLINK[code] + "/view";
+
 const LABELS = ["Хантинг и аутрич","Поток мелких партнёров","Сегменты партнёров","IT / SaaS / digital","Личные продажи","Своя система и автономность","Активация партнёров"];
 const TIER_ORDER = { A: 0, B: 1, C: 2 };
 const ORIG = new Map(DATA.map((d, i) => [d.code, i]));
@@ -354,10 +373,12 @@ function render() {
         '<td><span class="money">' + esc(d.pay) + "</span></td>" +
         '<td class="score"><b>' + fmtScore(d.score) + '</b><i> / 10</i></td>' +
         '<td><span class="tier ' + d.tier + '">' + d.tier + "</span></td>" +
+        '<td><a class="cvlink" href="' + cvUrl(d.code) + '" target="_blank" rel="noopener" title="Открыть резюме ' + esc(d.code) + ' в Google Drive">PDF&nbsp;↗</a></td>' +
         '<td><span class="chev" aria-hidden="true">▶</span></td>' +
       "</tr>" +
-      '<tr class="detail" hidden><td colspan="5"><div class="panel"><div>' +
+      '<tr class="detail" hidden><td colspan="6"><div class="panel"><div>' +
         '<p class="verdict">' + esc(d.verdict) + "</p>" +
+        '<p class="cvline"><a class="cvlink" href="' + cvUrl(d.code) + '" target="_blank" rel="noopener">Резюме ' + esc(d.code) + ' в Google Drive&nbsp;↗</a></p>' +
         '<div class="pm"><div class="p"><h4>Сильные стороны</h4><ul>' + plus + "</ul></div>" +
         '<div class="m"><h4>Чего не хватает</h4><ul>' + minus + "</ul></div></div>" +
       '</div><div class="bars"><p>Оценка по критериям</p>' + bars + "</div></div></td></tr>"
