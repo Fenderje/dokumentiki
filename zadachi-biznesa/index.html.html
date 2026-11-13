@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Задачи бизнеса в Звонке — разбор 4 423 пользователей</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --ink:#1C1C1C;
+    --ink-soft:#262626;
+    --paper:#EEEFF5;
+    --accent:#FF7545;
+    --on-dark:#F2F2F4;
+    --on-dark-muted:#9B9BA2;
+    --on-paper:#1C1C1C;
+    --on-paper-muted:#60606A;
+    --line-dark:#333338;
+    --line-paper:#D8D9E2;
+    --r-block:70px;
+    --r-card:40px;
+    --r-chip:20px;
+    --maxw:1060px;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--on-dark);
+    font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    font-size:16px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:var(--maxw);margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+  .block{border-radius:var(--r-block);margin:0 auto;padding-block:clamp(36px,6vw,72px)}
+  .block.paper{background:var(--paper);color:var(--on-paper)}
+  .block.paper a{color:#C8441A}
+  .shell{max-width:calc(var(--maxw) + 40px);margin:0 auto;padding:12px}
+  h1{font-size:clamp(32px,5.6vw,60px);line-height:1.05;font-weight:700;letter-spacing:-0.02em;margin:0 0 20px;text-wrap:balance}
+  h2{font-size:clamp(24px,3.4vw,36px);line-height:1.12;font-weight:700;letter-spacing:-0.015em;margin:0 0 10px;text-wrap:balance}
+  h3{font-size:19px;font-weight:600;margin:0 0 8px}
+  p{margin:0 0 14px;max-width:68ch}
+  .lead{font-size:clamp(17px,2.1vw,21px);line-height:1.45;color:var(--on-dark-muted);max-width:60ch}
+  .paper .lead{color:var(--on-paper-muted)}
+  .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:500;color:var(--accent);margin:0 0 14px}
+  .muted{color:var(--on-dark-muted)}
+  .paper .muted{color:var(--on-paper-muted)}
+  .small{font-size:14px}
+  .curve{height:8px;border-radius:8px;background:var(--accent);margin:0 0 28px;max-width:140px}
+
+  .meta{display:flex;flex-wrap:wrap;gap:10px 28px;font-size:14px;color:var(--on-dark-muted);margin-top:26px;padding-top:20px;border-top:1px solid var(--line-dark)}
+  .meta b{color:var(--on-dark);font-weight:500}
+
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:14px;margin:28px 0 0}
+  .tile{background:var(--ink-soft);border:1px solid var(--line-dark);border-radius:var(--r-card);padding:22px 24px}
+  .paper .tile{background:#fff;border-color:var(--line-paper)}
+  .tile .n{font-size:clamp(28px,4vw,38px);font-weight:700;letter-spacing:-0.02em;line-height:1.1;font-variant-numeric:tabular-nums}
+  .tile .c{font-size:13px;color:var(--on-dark-muted);margin-top:6px}
+  .paper .tile .c{color:var(--on-paper-muted)}
+
+  .findings{display:grid;gap:14px;margin-top:26px}
+  .finding{background:#fff;border-radius:var(--r-card);padding:24px 26px;border:1px solid var(--line-paper);display:grid;grid-template-columns:44px 1fr;gap:18px;align-items:start}
+  .finding .num{width:40px;height:40px;border-radius:999px;background:var(--accent);color:#1C1C1C;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px}
+  .finding p{margin:0}
+  .finding strong{font-weight:700}
+
+  .chart{margin-top:26px}
+  .bar-row{display:grid;grid-template-columns:minmax(170px,258px) 1fr auto;gap:12px;align-items:center;padding:5px 0}
+  .bar-row .nm{font-size:14px;text-align:right;color:var(--on-paper-muted)}
+  .bar-row.is-go .nm{color:var(--on-paper);font-weight:500}
+  .bar-track{background:transparent;position:relative;height:18px}
+  .bar{height:18px;border-radius:6px;background:var(--accent);min-width:3px;transition:width .4s ease}
+  .bar.wait{background:#9B9BA2}
+  .bar.no{background:#C9CAD4}
+  .bar-row .vals{font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--on-paper)}
+  .bar-row .vals em{font-style:normal;color:var(--on-paper-muted);margin-left:10px}
+  .legend{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:13px;color:var(--on-paper-muted);margin:4px 0 18px}
+  .legend i{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:7px;vertical-align:-1px}
+
+  .filters{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 14px}
+  .filters button{font:inherit;font-size:13px;padding:7px 16px;border-radius:var(--r-chip);border:1px solid var(--line-paper);background:#fff;color:var(--on-paper);cursor:pointer}
+  .filters button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .filters button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  .tablewrap{overflow-x:auto;border-radius:var(--r-card);border:1px solid var(--line-paper);background:#fff}
+  table{border-collapse:collapse;width:100%;font-size:14px;min-width:560px}
+  th,td{text-align:left;padding:12px 16px;border-bottom:1px solid var(--line-paper);vertical-align:top}
+  th{font-weight:500;color:var(--on-paper-muted);font-size:13px;white-space:nowrap}
+  tr:last-child td{border-bottom:0}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .chip{display:inline-block;padding:3px 11px;border-radius:999px;font-size:12px;white-space:nowrap;border:1px solid var(--line-paper)}
+  .chip.go{background:var(--accent);border-color:var(--accent);color:#1C1C1C;font-weight:500}
+  .chip.wait{background:#ECEDF3;color:#4A4A55}
+  .chip.no{background:transparent;color:#86868F}
+  .quote{color:var(--on-paper-muted);font-size:13px}
+
+  .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:14px;margin-top:24px}
+  .card{background:var(--ink-soft);border:1px solid var(--line-dark);border-radius:var(--r-card);padding:24px 26px}
+  .paper .card{background:#fff;border-color:var(--line-paper)}
+  .card p:last-child{margin-bottom:0}
+
+  ol.pages{counter-reset:p;list-style:none;padding:0;margin:24px 0 0;display:grid;gap:10px}
+  ol.pages li{counter-increment:p;background:var(--ink-soft);border:1px solid var(--line-dark);border-radius:var(--r-card);padding:18px 24px;display:grid;grid-template-columns:34px 1fr;gap:16px;align-items:baseline}
+  ol.pages li::before{content:counter(p);color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
+  ol.pages li b{font-weight:600}
+  ol.pages li span{color:var(--on-dark-muted);display:block;font-size:14px;margin-top:3px}
+
+  ul.plain{margin:0 0 14px;padding-left:20px}
+  ul.plain li{margin-bottom:8px;max-width:68ch}
+
+  footer{padding-block:40px;font-size:13px;color:var(--on-dark-muted)}
+  footer a{color:var(--accent)}
+  a{color:var(--accent)}
+
+  @media (max-width:640px){
+    :root{--r-block:40px;--r-card:28px}
+    .bar-row{grid-template-columns:1fr;gap:3px;padding:9px 0;border-bottom:1px solid var(--line-paper)}
+    .bar-row .nm{text-align:left;font-size:14px;color:var(--on-paper);font-weight:500}
+    .bar-row .vals{font-size:13px}
+    .finding{grid-template-columns:1fr;gap:12px}
+  }
+  @media print{
+    body{background:#fff;color:#000}
+    .block.paper{background:#fff}
+    .bar{background:#999 !important}
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- 1. Шапка -->
+  <section class="block">
+    <div class="wrap">
+      <div class="curve"></div>
+      <p class="eyebrow">Исследование пользовательских сценариев</p>
+      <h1>Задачи бизнеса в Звонке</h1>
+      <p class="lead">Что 4 423 пользователя на самом деле делали через сервис с января по октябрь 2026 года — и по каким задачам есть смысл делать страницы на сайте.</p>
+
+      <div class="tiles">
+        <div class="tile"><div class="n">4&thinsp;423</div><div class="c">клиента за 10 месяцев</div></div>
+        <div class="tile"><div class="n">3&thinsp;077</div><div class="c">описали свою задачу</div></div>
+        <div class="tile"><div class="n">2&thinsp;171</div><div class="c">уникальная формулировка</div></div>
+        <div class="tile"><div class="n">367</div><div class="c">млн ₽ трат за период</div></div>
+      </div>
+
+      <div class="meta">
+        <span>Источник: <b>лист «Первичный сбор»</b></span>
+        <span>Период: <b>январь–октябрь 2026</b></span>
+        <span>Разбор: <b>28 октября 2026</b></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Главный вывод -->
+  <section class="block paper">
+    <div class="wrap">
+      <p class="eyebrow">Главный вывод</p>
+      <h2>Реальных сценариев 18, страницы заслуживают 9</h2>
+      <p class="lead">Три сценария закрывают 65% клиентов с описанной задачей: холодный обзвон с презентацией предложения (809 клиентов), верификация номера (963) и привлечение клиентов (465). Остальные 15 делят оставшиеся 35% — от 95 клиентов до 16.</p>
+
+      <div class="findings">
+        <div class="finding">
+          <div class="num">1</div>
+          <p><strong>Верификация номера — самый массовый сценарий, а не продажи.</strong> 963 клиента, 28% всей базы, используют Звонок как канал подтверждения номера: Flash Call, диктовка кода роботом, звонок на проверочный. Денег это приносит мало — 12,4 млн ₽, около 3% трат, — но по числу клиентов это №1.</p>
+        </div>
+        <div class="finding">
+          <div class="num">2</div>
+          <p><strong>Самый денежный сегмент — не «задача бизнеса» вообще.</strong> 217 клиентов с отраслью «Актуализаторщик» потратили 98,8 млн ₽, то есть 27% всей выручки за 10 месяцев. Задача у них в таблице не описана ни разу: это массовый прозвон баз на валидность номеров, в основном физлица и ИП на «Продвинутых» кампаниях и API. Страницу в раздел по этому сценарию делать нечего, но знать про него надо.</p>
+        </div>
+        <div class="finding">
+          <div class="num">3</div>
+          <p><strong>Опросы и NPS через звонки почти никто не делает.</strong> 19 клиентов из 3 077 (0,6%) и 0,2 млн ₽ трат. Слова «NPS» нет во всём массиве из 2 171 формулировки ни разу. Отдельная страница не окупится.</p>
+        </div>
+      </div>
+
+      <p class="small muted" style="margin-top:22px">1&thinsp;346 клиентов (30%) не имеют описания задачи вообще — по ним ничего сказать нельзя, и 37,9 млн ₽ их трат в разбивку по сценариям не попали.</p>
+    </div>
+  </section>
+
+  <!-- 3. Карта сценариев -->
+  <section class="block paper" style="margin-top:12px">
+    <div class="wrap">
+      <p class="eyebrow">Карта сценариев</p>
+      <h2>Клиенты по сценариям звонка</h2>
+      <p class="muted" style="max-width:70ch">Единица счёта — клиент, а не строка. Клиент с двумя задачами попадает в два сценария, поэтому сумма больше общего числа клиентов. Справа от числа клиентов — траты за период, млн ₽.</p>
+
+      <div class="legend">
+        <span><i style="background:#FF7545"></i>делаем страницу</span>
+        <span><i style="background:#9B9BA2"></i>вторая очередь</span>
+        <span><i style="background:#C9CAD4"></i>не задача бизнеса</span>
+      </div>
+
+      <div class="chart" id="chart-scen"></div>
+
+      <p class="small muted" style="margin-top:20px">Длина столбика и выручка расходятся почти везде: верификация первая по клиентам и предпоследняя по деньгам, актуализация баз — наоборот. Для раздела сайта ведущим сигналом берём число клиентов: оно ближе к частотности запросов, чем суммы, раздутые несколькими крупными аккаунтами.</p>
+    </div>
+  </section>
+
+  <!-- 4. Решение по каждому -->
+  <section class="block paper" style="margin-top:12px">
+    <div class="wrap">
+      <p class="eyebrow">Решение</p>
+      <h2>Что делаем по каждому сценарию</h2>
+      <p class="muted" style="max-width:70ch">«ИИ-квалификация лида» — срез внутри двух продажных сценариев, а не отдельный сегмент: эти 176 клиентов описывают задачу как цель диалога робота («Цель — получить согласие на звонок менеджера»). В графике выше он не показан, чтобы не считать клиентов дважды.</p>
+
+      <div class="filters" id="filters">
+        <button type="button" data-f="all" aria-pressed="true">Все</button>
+        <button type="button" data-f="Делать" aria-pressed="false">Делать</button>
+        <button type="button" data-f="Вторая очередь" aria-pressed="false">Вторая очередь</button>
+        <button type="button" data-f="Не делать" aria-pressed="false">Не делать</button>
+      </div>
+
+      <div class="tablewrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Сценарий</th>
+              <th class="num">Клиентов</th>
+              <th class="num">Траты, млн ₽</th>
+              <th class="num">Формулировок</th>
+              <th>Решение</th>
+              <th>Типичная формулировка клиента</th>
+            </tr>
+          </thead>
+          <tbody id="tbl-scen"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Первая очередь -->
+  <section class="block">
+    <div class="wrap">
+      <p class="eyebrow">Первая очередь</p>
+      <h2>Девять страниц, под которые есть спрос</h2>
+      <p class="lead">У каждой — от 90 реальных клиентов за 10 месяцев. Суммарно они покрывают почти всех, кто вообще описал задачу.</p>
+
+      <ol class="pages">
+        <li><div><b>Подтверждение номера звонком</b><span>963 клиента · 12,4 млн ₽. Flash Call, диктовка кода и звонок на проверочный как три способа на одной странице, с ценой за подтверждение и сравнением с SMS.</span></div></li>
+        <li><div><b>Холодный обзвон и продажа по базе</b><span>809 клиентов · 116,5 млн ₽. Самый денежный сценарий. Одна сильная страница с кейсами по восьми отраслям внутри, а не восемь тонких.</span></div></li>
+        <li><div><b>Привлечение клиентов для агентств и лидген-компаний</b><span>465 клиентов · 20,1 млн ₽. Самая плотная аудитория в данных, отдельный язык и отдельные возражения.</span></div></li>
+        <li><div><b>Техалерты и дежурные оповещения</b><span>189 клиентов · 1,1 млн ₽. Zabbix, Grafana, аварии, диспетчерские. По деньгам копейки, но сценарий предельно технический и легко пишущийся, с API.</span></div></li>
+        <li><div><b>ИИ-робот квалифицирует лида и передаёт менеджеру</b><span>176 клиентов · 5,4 млн ₽. Эти клиенты уже формулируют задачу языком цели диалога — явный запрос на диалогового робота.</span></div></li>
+        <li><div><b>Напоминания и подтверждения</b><span>160 клиентов · 17,3 млн ₽. Запись, заказ и занятие на одной странице; внутри — абзац про опрос после визита.</span></div></li>
+        <li><div><b>Подбор персонала и обзвон откликов</b><span>102 клиента · 31,3 млн ₽. Курьеры, вахта, массовые линейные позиции, контрактная служба.</span></div></li>
+        <li><div><b>Запись на пробное занятие</b><span>95 клиентов · 22,8 млн ₽. Школы, курсы, детские центры, фитнес, клиники.</span></div></li>
+        <li><div><b>Приглашение на вебинар и мероприятие</b><span>90 клиентов · 9,6 млн ₽. С блоком про напоминание за час до начала: это один и тот же клиент.</span></div></li>
+      </ol>
+
+      <div class="cols">
+        <div class="card">
+          <h3>Оговорка по HR</h3>
+          <p class="small muted">31,3 млн ₽ в HR на 61% сделаны одним клиентом, у которого в ячейке записаны сразу три задачи. Без него — 12,3 млн ₽, что всё равно много.</p>
+        </div>
+        <div class="card">
+          <h3>Оговорка по записи</h3>
+          <p class="small muted">13,0 млн ₽ сценария «Запись и приём» почти целиком даёт один страховой клиент, приглашающий на диспансеризацию. Число клиентов здесь честнее денег.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. Вторая очередь -->
+  <section class="block paper" style="margin-top:12px">
+    <div class="wrap">
+      <p class="eyebrow">Вторая очередь</p>
+      <h2>Мало для приоритета, достаточно, чтобы не выдумывать</h2>
+
+      <div class="tablewrap">
+        <table>
+          <thead>
+            <tr><th>Сценарий</th><th class="num">Клиентов</th><th class="num">Траты, млн ₽</th><th>Что это на самом деле</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Промо по своей базе: акции, скидки, абонементы</td><td class="num">53</td><td class="num">7,0</td><td class="quote">Бьюти, фитнес, розница: «Скидки на посещение», «Пригласи друга, получи скидку»</td></tr>
+            <tr><td>Взыскание задолженности и напоминание об оплате</td><td class="num">53</td><td class="num">1,7</td><td class="quote">ЖКХ и микрофинансы: «напоминание о долге», «просят погасить задолженность за ЖКХ»</td></tr>
+            <tr><td>Обработка входящих, callback, переадресация</td><td class="num">53</td><td class="num">3,3</td><td class="quote">«Обратные звонки», «Прозванивают недозвоны от КЦ с переадресацией», «автоответчик»</td></tr>
+            <tr><td>Доступ и оповещение жильцов (УК, СНТ, шлагбаум)</td><td class="num">38</td><td class="num">0,3</td><td class="quote">«открытие ворот», «звонок для открытия шлагбаума», «напоминают собственникам о голосовании»</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="small muted" style="margin-top:18px">Промо и взыскание потянут на отдельные страницы, когда дойдут руки. Доступ и ЖКХ — скорее кейс для отраслевой страницы «УК и СНТ», чем самостоятельная задача: траты там копеечные, но сценарий очень понятный и хорошо ищется.</p>
+    </div>
+  </section>
+
+  <!-- 7. Не делать -->
+  <section class="block">
+    <div class="wrap">
+      <p class="eyebrow">Не делать</p>
+      <h2>Опросы и NPS — спроса нет</h2>
+      <p class="lead">19 клиентов из 3 077, 0,2 млн ₽ за 10 месяцев. Все 19 формулировок встречаются ровно по одному разу.</p>
+
+      <div class="cols">
+        <div class="card">
+          <h3>Что писали эти 19</h3>
+          <p class="small muted">«Оценка качества обслуживания» · «Оценка работы оператора» · «опрос какую систему автоматизации используете» · «Сбор обратной связи по обучению» · «Просят отзыв, дают бонусы» · «Анкетирование»</p>
+        </div>
+        <div class="card">
+          <h3>Что с этим делать</h3>
+          <p class="small muted">Максимум — абзац внутри страницы про напоминания и постпродажные звонки. Отдельная страница не окупится, и ставить NPS в заголовок направления «Клиентский сервис» не стоит.</p>
+        </div>
+      </div>
+
+      <h3 style="margin-top:34px">Остальное, что не потянет на страницу</h3>
+      <ul class="plain">
+        <li><b>Реактивация базы — 16 клиентов, 1,2 млн ₽.</b> «Реанимация базы», «разморозка базы», «оживляем спящие базы». Красивый маркетинговый термин, который почти никто не использует. Блок внизу страницы про промо по базе, а не заголовок.</li>
+        <li><b>Актуализация баз номеров — 217 клиентов, 98,8 млн ₽.</b> Самый доходный сегмент и при этом не задача бизнеса в том смысле, в каком её можно продавать со страницы. Продуктово знать про него критично, для раздела сайта — нет.</li>
+        <li><b>Поиск партнёров и подрядчиков, поздравления с ДР, голосования СНТ</b> — единицы упоминаний на весь массив.</li>
+        <li><b>Служебное и мусор — 616 клиентов.</b> Из них 258 — строки вида «Списание за номера» (записан биллинг, а не задача), остальное — тесты, пранки и проверки своих номеров.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 8. Сценарий × отрасль -->
+  <section class="block paper" style="margin-top:12px">
+    <div class="wrap">
+      <p class="eyebrow">Отраслевой срез</p>
+      <h2>Где хватает объёма на отраслевые подстраницы</h2>
+      <p class="muted" style="max-width:70ch">Отраслевые подстраницы имеют смысл только там, где конкретная пара «сценарий × отрасль» набрала хотя бы пару десятков клиентов. Таких пар немного.</p>
+
+      <div class="chart" id="chart-pairs" style="margin-top:22px"></div>
+
+      <div class="cols" style="margin-top:28px">
+        <div class="card">
+          <h3>Вывод первый</h3>
+          <p class="small muted">«Привлечение клиентов для маркетинговых агентств» — самая обеспеченная данными отраслевая страница вообще: 357 клиентов в одной ячейке, крупнейшей во всём массиве.</p>
+        </div>
+        <div class="card">
+          <h3>Вывод второй</h3>
+          <p class="small muted">Холодный обзвон расползается ровным слоем по восьми отраслям по 20–80 клиентов. Значит, делать надо одну сильную страницу сценария с восемью отраслевыми кейсами внутри, а не восемь тонких страниц.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. Как клиенты формулируют -->
+  <section class="block paper" style="margin-top:12px">
+    <div class="wrap">
+      <p class="eyebrow">Язык клиента</p>
+      <h2>Как они сами называют свою задачу</h2>
+      <p class="muted" style="max-width:70ch">Цитаты из колонки «Какие задачи решают подробнее». Это тот язык, которым стоит писать заголовки страниц — не «ИИ-робот для лидогенерации», а словами задачи.</p>
+
+      <div class="tablewrap" style="margin-top:22px">
+        <table>
+          <thead><tr><th>Сценарий</th><th>Формулировка в таблице</th><th class="num">Клиентов</th><th class="num">Траты, млн ₽</th></tr></thead>
+          <tbody id="tbl-ex"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. Метод -->
+  <section class="block">
+    <div class="wrap">
+      <p class="eyebrow">Метод</p>
+      <h2>Как считали и где данные врут</h2>
+      <p>Единица счёта — клиент (User ID), а не строка. Взят лист «Первичный сбор без объединения ячеек»: 4&thinsp;876 строк, 4&thinsp;423 клиента. Из колонки «Какие задачи решают подробнее» собрана 2&thinsp;171 уникальная формулировка и размечена по 18 сценариям набором из 24 регулярных выражений с приоритетом.</p>
+
+      <ul class="plain">
+        <li><b>Один клиент может попасть в несколько сценариев.</b> 3&thinsp;077 клиентов с описанной задачей дают 3&thinsp;229 пар «клиент × задача». Сумма по сценариям больше 4&thinsp;423.</li>
+        <li><b>Траты дублируются по той же причине.</b> Если у клиента две задачи, его сумма учтена в обоих сценариях. Сумма по всем сценариям — 389 млн ₽ при реальных 367 млн ₽, завышение около 6%. Для сравнения сценариев между собой это допустимо, как долю выручки брать нельзя.</li>
+        <li><b>Выручка крайне концентрирована.</b> Один клиент с ячейкой «Сексология, поиск сотрудников, приглашения на вебинар» даёт 19 млн ₽ — это 61% всей выручки сценария «HR». Приоритет судите по числу клиентов, выручка — вторичный сигнал.</li>
+        <li><b>Разметка автоматическая и не идеальна.</b> 93 формулировки (3%) остались в «Прочем». Граница между «холодным обзвоном» и «лидгеном» условна: первое — компания продаёт своё, второе — агентство продаёт привлечение клиентов. Вместе они дают 1&thinsp;274 клиента, и это самый надёжный факт всего разбора.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      Разбор пользовательских сценариев Звонка, январь–октябрь 2026. Правила разметки и полная таблица с присвоенным сценарием по каждой из 2&thinsp;171 формулировки — в рабочем Google-файле «Анализ задач бизнеса».
+    </div>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var SCEN = [
+    {name:"Верификация номера",            clients:963, mln:12.4,  phrases:93,  v:"Делать",          chart:true,  ex:"«Flash Call», «Звонок на проверочный номер», «Диктовка кода роботом»"},
+    {name:"Холодный обзвон и продажа",     clients:809, mln:116.5, phrases:787, v:"Делать",          chart:true,  ex:"«предлагают одобрение кредита», «Предложение купить квартиру в новом ЖК»"},
+    {name:"Служебное и тесты",             clients:616, mln:1.6,   phrases:84,  v:"Не делать",       chart:true,  ex:"«Списание за номера», «тест», «пранки», «проверка своих номеров»"},
+    {name:"Без описания задачи",           clients:532, mln:37.9,  phrases:0,   v:"Не делать",       chart:true,  ex:"—"},
+    {name:"Лидген и привлечение клиентов", clients:465, mln:20.1,  phrases:406, v:"Делать",          chart:true,  ex:"«поиск клиентов», «привлечение клиентов», «перехват клиентов у конкурентов»"},
+    {name:"Актуализация базы номеров",     clients:217, mln:98.8,  phrases:0,   v:"Не делать",       chart:true,  ex:"задача не описана ни разу"},
+    {name:"Техалерты и мониторинг",        clients:189, mln:1.1,   phrases:86,  v:"Делать",          chart:true,  ex:"«Алерты из Zabbix», «Уведомления от графаны», «алерт об аварии»"},
+    {name:"ИИ-квалификация лида",          clients:176, mln:5.4,   phrases:176, v:"Делать",          chart:false, ex:"«Цель — получить согласие на звонок менеджера»"},
+    {name:"HR и массовый подбор",          clients:102, mln:31.3,  phrases:95,  v:"Делать",          chart:true,  ex:"«подбор кандидатов на контрактную службу», «набирают курьеров»"},
+    {name:"Приглашение на пробное занятие",clients:95,  mln:22.8,  phrases:91,  v:"Делать",          chart:true,  ex:"«Приглашают на пробный урок», «Предлагают бесплатное пробное занятие»"},
+    {name:"Прочее (не распознано)",        clients:93,  mln:6.1,   phrases:93,  v:"Не делать",       chart:true,  ex:"—"},
+    {name:"Приглашение на мероприятие",    clients:90,  mln:9.6,   phrases:88,  v:"Делать",          chart:true,  ex:"«Приглашают на вебинар», «Приглашают на день открытых дверей»"},
+    {name:"Транзакционные уведомления",    clients:82,  mln:1.4,   phrases:66,  v:"Делать",          chart:true,  ex:"«Уведомление о доставке», «Заказ готов к выдаче»"},
+    {name:"Взыскание задолженности",       clients:53,  mln:1.7,   phrases:44,  v:"Вторая очередь",  chart:true,  ex:"«напоминание о долге», «просят погасить задолженность за ЖКХ»"},
+    {name:"Промо по своей базе",           clients:53,  mln:7.0,   phrases:53,  v:"Вторая очередь",  chart:true,  ex:"«Скидки на посещение», «Пригласи друга, получи скидку»"},
+    {name:"Входящие, callback, IVR",       clients:53,  mln:3.3,   phrases:41,  v:"Вторая очередь",  chart:true,  ex:"«Обратные звонки», «Прозванивают недозвоны от КЦ с переадресацией»"},
+    {name:"Запись и приём",                clients:44,  mln:13.0,  phrases:34,  v:"Делать",          chart:true,  ex:"«Подтверждение записи», «Записывают на прием, напоминание о следующих этапах»"},
+    {name:"Доступ и ЖКХ-оповещения",       clients:38,  mln:0.3,   phrases:37,  v:"Вторая очередь",  chart:true,  ex:"«открытие ворот», «звонок для открытия шлагбаума»"},
+    {name:"Напоминание о занятии и событии",clients:34, mln:2.9,   phrases:33,  v:"Делать",          chart:true,  ex:"«напоминание про вебинары», «напоминание о начале урока»"},
+    {name:"Опросы и оценка качества",      clients:19,  mln:0.2,   phrases:19,  v:"Не делать",       chart:true,  ex:"«Оценка качества обслуживания», «Оценка работы оператора»"},
+    {name:"Реактивация базы",              clients:16,  mln:1.2,   phrases:14,  v:"Не делать",       chart:true,  ex:"«Реанимация базы», «разморозка базы», «оживляем спящие базы»"}
+  ];
+
+  var PAIRS = [
+    {sc:"Верификация номера",             ind:"Подтверждение номера (сервисы)", n:465},
+    {sc:"Лидген и привлечение клиентов",  ind:"Продвижение, маркетинг и IT",    n:357},
+    {sc:"Техалерты и мониторинг",         ind:"Алерты (ИТ и диспетчерские)",    n:82},
+    {sc:"Холодный обзвон и продажа",      ind:"Услуги для бизнеса",             n:80},
+    {sc:"Холодный обзвон и продажа",      ind:"Недвижимость",                   n:65},
+    {sc:"Холодный обзвон и продажа",      ind:"Образование",                    n:62},
+    {sc:"HR и массовый подбор",           ind:"HR-услуги и кадровые агентства", n:61},
+    {sc:"Холодный обзвон и продажа",      ind:"Производство",                   n:56},
+    {sc:"Приглашение на пробное занятие", ind:"Образование",                    n:46},
+    {sc:"Холодный обзвон и продажа",      ind:"Финансовые услуги",              n:41},
+    {sc:"Холодный обзвон и продажа",      ind:"Ремонт, интерьеры, архитектура", n:40},
+    {sc:"Верификация номера",             ind:"Розничные продажи товаров",      n:36},
+    {sc:"Транзакционные уведомления",     ind:"Алерты (ИТ и диспетчерские)",    n:34},
+    {sc:"Холодный обзвон и продажа",      ind:"Медицина и красота",             n:32},
+    {sc:"Приглашение на мероприятие",     ind:"Инфобизнес",                     n:31},
+    {sc:"Запись и приём",                 ind:"Медицина и красота",             n:30},
+    {sc:"Холодный обзвон и продажа",      ind:"Банкротство",                    n:28},
+    {sc:"Холодный обзвон и продажа",      ind:"Авто: продажа, обслуживание",    n:22},
+    {sc:"Приглашение на мероприятие",     ind:"Образование",                    n:22},
+    {sc:"Верификация номера",             ind:"Медицина и красота",             n:21},
+    {sc:"HR и массовый подбор",           ind:"Контракт, СВО, военкомат",       n:19},
+    {sc:"Холодный обзвон и продажа",      ind:"Внедрение AI",                   n:18},
+    {sc:"Верификация номера",             ind:"Услуги для бизнеса",             n:18},
+    {sc:"Холодный обзвон и продажа",      ind:"Инфобизнес",                     n:16},
+    {sc:"Лидген и привлечение клиентов",  ind:"Услуги для бизнеса",             n:15},
+    {sc:"Взыскание задолженности",        ind:"ЖКХ",                            n:14}
+  ];
+
+  var EX = [
+    {sc:"Верификация номера",             p:"Flash Call",                                                  n:271, m:2.77},
+    {sc:"Верификация номера",             p:"Звонок на проверочный номер",                                 n:67,  m:0.06},
+    {sc:"Верификация номера",             p:"Диктовка кода роботом",                                       n:44,  m:0.64},
+    {sc:"Холодный обзвон и продажа",      p:"предлагают одобрение кредита",                                n:1,   m:13.81},
+    {sc:"Холодный обзвон и продажа",      p:"Предлагают бесплатную консультацию по списанию долгов",        n:1,   m:4.11},
+    {sc:"Холодный обзвон и продажа",      p:"Предложение купить квартиру в новом ЖК",                      n:1,   m:3.67},
+    {sc:"Лидген и привлечение клиентов",  p:"поиск клиентов",                                              n:23,  m:0.29},
+    {sc:"Лидген и привлечение клиентов",  p:"привлечение клиентов",                                        n:9,   m:0.03},
+    {sc:"Лидген и привлечение клиентов",  p:"Предлагают перехват клиентов у конкурентов",                  n:2,   m:2.19},
+    {sc:"Техалерты и мониторинг",         p:"алерты",                                                      n:9,   m:0.34},
+    {sc:"Техалерты и мониторинг",         p:"Алерты из Zabbix",                                            n:1,   m:0.003},
+    {sc:"Техалерты и мониторинг",         p:"Алерты об инцидентах на АЗС",                                 n:1,   m:0.03},
+    {sc:"ИИ-квалификация лида",           p:"Цель — получить согласие на звонок юриста для консультации по процедуре банкротства", n:1, m:0.66},
+    {sc:"ИИ-квалификация лида",           p:"Цель — получить согласие клиента на посещение бесплатного пробного занятия", n:1, m:0.08},
+    {sc:"HR и массовый подбор",           p:"подбор кандидатов на контрактную службу",                     n:1,   m:2.49},
+    {sc:"HR и массовый подбор",           p:"набирают курьеров",                                           n:1,   m:0.36},
+    {sc:"HR и массовый подбор",           p:"Прозванивают отклики на hh",                                  n:1,   m:0.004},
+    {sc:"Приглашение на пробное занятие", p:"Приглашают на пробный урок",                                  n:3,   m:11.95},
+    {sc:"Приглашение на пробное занятие", p:"Предлагают занятия для детей и пробное занятие",              n:1,   m:5.58},
+    {sc:"Приглашение на мероприятие",     p:"напоминание про вебинары",                                    n:1,   m:1.34},
+    {sc:"Запись и приём",                 p:"Записывают на прием, напоминание о следующих этапах",         n:1,   m:12.36},
+    {sc:"Запись и приём",                 p:"Подтверждение записи",                                        n:5,   m:0.09},
+    {sc:"Опросы и оценка качества",       p:"Оценка качества обслуживания",                                n:1,   m:0.09},
+    {sc:"Реактивация базы",               p:"Реанимация базы",                                             n:2,   m:0.003}
+  ];
+
+  function nf(n){
+    return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  }
+  function mf(n){
+    return (Math.round(n * 100) / 100).toLocaleString("ru-RU", {minimumFractionDigits: n < 1 ? 2 : 1, maximumFractionDigits: n < 1 ? 2 : 1});
+  }
+  function cls(v){
+    return v === "Делать" ? "go" : (v === "Вторая очередь" ? "wait" : "no");
+  }
+  function el(tag, className, text){
+    var e = document.createElement(tag);
+    if (className) e.className = className;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  // --- График: клиенты по сценариям ---
+  (function(){
+    var host = document.getElementById("chart-scen");
+    if (!host) return;
+    var rows = SCEN.filter(function(r){ return r.chart; })
+                   .slice()
+                   .sort(function(a,b){ return b.clients - a.clients; });
+    var max = rows[0].clients;
+    rows.forEach(function(r){
+      var row = el("div", "bar-row" + (r.v === "Делать" ? " is-go" : ""));
+      row.appendChild(el("div", "nm", r.name));
+      var track = el("div", "bar-track");
+      var bar = el("div", "bar " + cls(r.v));
+      bar.style.width = Math.max(1.2, (r.clients / max) * 100) + "%";
+      track.appendChild(bar);
+      row.appendChild(track);
+      var vals = el("div", "vals");
+      vals.appendChild(document.createTextNode(nf(r.clients)));
+      vals.appendChild(el("em", null, mf(r.mln) + " млн ₽"));
+      row.appendChild(vals);
+      row.title = r.name + ": " + nf(r.clients) + " клиентов, " + mf(r.mln) + " млн ₽ — " + r.v;
+      host.appendChild(row);
+    });
+  })();
+
+  // --- График: пары сценарий × отрасль ---
+  (function(){
+    var host = document.getElementById("chart-pairs");
+    if (!host) return;
+    var rows = PAIRS.slice().sort(function(a,b){ return b.n - a.n; });
+    var max = rows[0].n;
+    rows.forEach(function(r){
+      var strong = r.n >= 20;
+      var row = el("div", "bar-row" + (strong ? " is-go" : ""));
+      row.appendChild(el("div", "nm", r.ind));
+      var track = el("div", "bar-track");
+      var bar = el("div", "bar" + (strong ? "" : " no"));
+      bar.style.width = Math.max(1.2, (r.n / max) * 100) + "%";
+      track.appendChild(bar);
+      row.appendChild(track);
+      var vals = el("div", "vals");
+      vals.appendChild(document.createTextNode(nf(r.n)));
+      vals.appendChild(el("em", null, r.sc));
+      row.appendChild(vals);
+      row.title = r.ind + " × " + r.sc + ": " + nf(r.n) + " клиентов";
+      host.appendChild(row);
+    });
+  })();
+
+  // --- Таблица сценариев с фильтром ---
+  (function(){
+    var tb = document.getElementById("tbl-scen");
+    var filters = document.getElementById("filters");
+    if (!tb || !filters) return;
+    var rows = SCEN.slice().sort(function(a,b){ return b.clients - a.clients; });
+
+    function render(f){
+      tb.replaceChildren();
+      rows.filter(function(r){ return f === "all" || r.v === f; }).forEach(function(r){
+        var tr = el("tr");
+        tr.appendChild(el("td", null, r.name));
+        tr.appendChild(el("td", "num", nf(r.clients)));
+        tr.appendChild(el("td", "num", mf(r.mln)));
+        tr.appendChild(el("td", "num", r.phrases ? nf(r.phrases) : "—"));
+        var td = el("td");
+        td.appendChild(el("span", "chip " + cls(r.v), r.v));
+        tr.appendChild(td);
+        tr.appendChild(el("td", "quote", r.ex));
+        tb.appendChild(tr);
+      });
+    }
+
+    filters.addEventListener("click", function(e){
+      var btn = e.target.closest("button[data-f]");
+      if (!btn) return;
+      Array.prototype.forEach.call(filters.querySelectorAll("button"), function(b){
+        b.setAttribute("aria-pressed", String(b === btn));
+      });
+      render(btn.getAttribute("data-f"));
+    });
+
+    render("all");
+  })();
+
+  // --- Таблица цитат ---
+  (function(){
+    var tb = document.getElementById("tbl-ex");
+    if (!tb) return;
+    EX.forEach(function(r){
+      var tr = el("tr");
+      tr.appendChild(el("td", null, r.sc));
+      tr.appendChild(el("td", "quote", "«" + r.p + "»"));
+      tr.appendChild(el("td", "num", nf(r.n)));
+      tr.appendChild(el("td", "num", mf(r.m)));
+      tb.appendChild(tr);
+    });
+  })();
+
+})();
+</script>
+
+</body>
+</html>
