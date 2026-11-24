@@ -1,0 +1,1517 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<style>
+  /* Базовый сброс: на claude.ai его добавляла платформа, здесь задаём сами */
+  :root {
+    color-scheme: light;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  body { margin: 0; font: 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+</style>
+<title>Кто найдёт партнёров</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Caveat:wght@700&display=swap">
+<style>
+  /* Рейтинг под разделённую роль: только поиск и привлечение партнёров */
+  :root {
+    --bg: #1C1C1C; --surface: #242424; --surface-2: #2E2E2E; --line: #3A3A3A;
+    --fg: #F2F2F3; --muted: #9A9A9E; --accent: #FF7545; --accent-soft: rgba(255, 117, 69, .14);
+    --good: #4FBF8B; --warn: #E8B84B; --bad: #E06A5A; --bar-off: #3A3A3A;
+    --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --hand: "Caveat", "Inter", cursive;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #EEEFF5; --surface: #FFFFFF; --surface-2: #F4F5F9; --line: #DFE0E8;
+      --fg: #1C1C1C; --muted: #6B6C76; --accent: #E85A28; --accent-soft: rgba(232, 90, 40, .12);
+      --good: #2E9B6A; --warn: #B88A1C; --bad: #C84A38; --bar-off: #DFE0E8;
+      color-scheme: light;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #EEEFF5; --surface: #FFFFFF; --surface-2: #F4F5F9; --line: #DFE0E8;
+    --fg: #1C1C1C; --muted: #6B6C76; --accent: #E85A28; --accent-soft: rgba(232, 90, 40, .12);
+    --good: #2E9B6A; --warn: #B88A1C; --bad: #C84A38; --bar-off: #DFE0E8;
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  .wrap {
+    max-width: 1180px; margin: 0 auto;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 28px 56px;
+  }
+
+  header { padding-block: 8px 0; }
+  .eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin: 0 0 10px; }
+  h1 { font-size: clamp(28px, 5.4vw, 46px); line-height: 1.08; font-weight: 700; letter-spacing: -.02em; margin: 0 0 14px; text-wrap: balance; max-width: 18ch; }
+  .lede { color: var(--muted); max-width: 64ch; margin: 0; font-size: 16px; }
+  .lede strong { color: var(--fg); font-weight: 600; }
+  .curve { display: block; width: 100%; height: 10px; margin: 26px 0 0; overflow: visible; }
+
+  .stats { display: grid; gap: 10px; margin: 26px 0 0; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 14px 16px; min-width: 0; }
+  .stat b { display: block; font-size: 28px; line-height: 1.1; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .stat span { font-size: 12.5px; color: var(--muted); }
+  .stat.is-good b { color: var(--good); }
+  .stat.is-accent b { color: var(--accent); }
+
+  .callout { background: var(--surface); border: 1px solid var(--accent); border-left-width: 4px; border-radius: 20px; padding: 18px 20px; margin: 34px 0 0; }
+  .callout p { margin: 0 0 10px; }
+  .callout p:last-child { margin: 0; }
+
+  .method { background: var(--surface); border: 1px solid var(--line); border-radius: 28px; padding: 20px 20px 22px; margin: 18px 0 0; }
+  .method h2 { font-size: 18px; font-weight: 700; margin: 0 0 6px; letter-spacing: -.01em; }
+  .method > p { color: var(--muted); margin: 0 0 16px; font-size: 14px; max-width: 72ch; }
+  .wlist { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+  .wlist div { min-width: 0; }
+  .wlist b { display: block; font-size: 13.5px; margin-bottom: 3px; }
+  .wlist b i { font-style: normal; color: var(--accent); }
+  .wlist p { margin: 0; font-size: 13px; color: var(--muted); }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 18px 28px; align-items: flex-end; margin: 34px 0 16px; }
+  .group { min-width: 0; }
+  .group > p { margin: 0 0 7px; font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font: inherit; font-size: 13px; font-weight: 500; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 20px; padding: 7px 14px; cursor: pointer; transition: .15s; }
+  .chip:hover { border-color: var(--accent); }
+  .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .tablecard { background: var(--surface); border: 1px solid var(--line); border-radius: 28px; overflow: hidden; }
+  .scroller { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 900px; }
+  thead th { text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 14px; border-bottom: 1px solid var(--line); background: var(--surface-2); white-space: nowrap; }
+  thead th.num { text-align: right; }
+  tbody td { padding: 13px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  tr.row { cursor: pointer; }
+  tr.row:hover td { background: var(--surface-2); }
+  tr.row.open td { background: var(--accent-soft); }
+  .who { display: flex; align-items: center; gap: 11px; min-width: 0; }
+  .rank { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
+  tr.row.t-A .rank { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .who-text { min-width: 0; }
+  .who-text b { display: block; font-weight: 600; font-size: 14.5px; }
+  .who-text span { display: block; font-size: 12.5px; color: var(--muted); }
+  .flag { color: var(--warn); font-weight: 600; font-size: 12px; }
+  .stagechip { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--line); background: var(--surface-2); color: var(--muted); white-space: nowrap; text-decoration: none; display: inline-block; transition: .15s; }
+  a.stagechip:hover { border-color: var(--accent); color: var(--accent); }
+  .money { font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .money.unknown { color: var(--muted); font-style: italic; }
+  .score { text-align: right; white-space: nowrap; }
+  .score b { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .score i { font-style: normal; font-size: 12px; color: var(--muted); }
+  .delta { font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .delta.up { color: var(--good); }
+  .delta.down { color: var(--bad); }
+  .delta.same { color: var(--muted); }
+  .tier { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 7px; font-size: 12px; font-weight: 700; }
+  .tier.A { background: var(--good); color: #0d1f17; }
+  .tier.B { background: var(--warn); color: #231c05; }
+  .tier.C { background: var(--bar-off); color: var(--muted); }
+  .chev { color: var(--muted); font-size: 12px; transition: transform .18s; display: inline-block; }
+  tr.row.open .chev { transform: rotate(90deg); color: var(--accent); }
+  .cvlink { color: var(--accent); text-decoration: none; font-size: 12.5px; font-weight: 600; border: 1px solid var(--line); border-radius: 20px; padding: 4px 10px; white-space: nowrap; display: inline-block; transition: .15s; }
+  .cvlink:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .cvlink:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .cvline { margin: -4px 0 14px; display: flex; flex-wrap: wrap; gap: 8px; }
+
+  tr.detail > td { padding: 0; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+  .panel { padding: 18px 16px 22px; display: grid; gap: 18px; }
+  @media (min-width: 760px) { .panel { grid-template-columns: 1fr 290px; align-items: start; } }
+  .verdict { margin: 0 0 12px; font-size: 15px; }
+  .block { margin: 0 0 14px; }
+  .block h4 { margin: 0 0 5px; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .block p { margin: 0; font-size: 13.5px; }
+  .block.warn { background: var(--bg); border: 1px solid var(--warn); border-radius: 20px; padding: 13px 15px; }
+  .block.warn h4 { color: var(--warn); }
+  .block ul { margin: 0; padding-left: 17px; }
+  .block li { margin-bottom: 5px; font-size: 13.5px; }
+  .block li::marker { color: var(--muted); }
+  .tools { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tool { font-size: 12px; padding: 3px 9px; border-radius: 20px; border: 1px solid var(--line); background: var(--bg); color: var(--muted); }
+  .bars { display: grid; gap: 8px; }
+  .bars > p { margin: 0 0 2px; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .bar { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+  .bar span { font-size: 12.5px; color: var(--muted); }
+  .seg { display: flex; gap: 3px; }
+  .seg i { width: 13px; height: 6px; border-radius: 3px; background: var(--bar-off); }
+  .seg i.on { background: var(--accent); }
+  .note { font-family: var(--hand); font-size: 20px; color: var(--accent); line-height: 1.25; margin: 16px 0 0; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 12.5px; max-width: 80ch; }
+  .empty { padding: 34px 18px; text-align: center; color: var(--muted); font-size: 14px; }
+</style>
+<style>
+  /* Навигация между страницами — добавляется только в версии для сайта */
+  .sitenav { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 24px; padding: 0; list-style: none; }
+  .sitenav a, .sitenav span {
+    font-size: 13px; font-weight: 500; line-height: 1.2;
+    padding: 8px 14px; border-radius: 20px; border: 1px solid var(--line);
+    text-decoration: none; display: inline-block; transition: .15s;
+  }
+  .sitenav a { color: var(--accent); background: var(--surface); }
+  .sitenav a:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .sitenav a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .sitenav span { color: var(--fg); background: var(--accent-soft); border-color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="sitenav" aria-label="Страницы подбора"><a href="../">← Все этапы</a><a href="../step-1/">Этап 1 · 17</a><a href="../step-2/">Этап 2 · 6</a><a href="../step-3/">Этап 3 · 13</a><span aria-current="page">Поиск партнёров · 36</span></nav>
+  <header>
+    <p class="eyebrow">Звонок · подбор · роль разделена</p>
+    <h1>Кто найдёт партнёров</h1>
+    <p class="lede">Все 36 кандидатов пересчитаны под <strong>половину роли: найти партнёров и довести до заключения партнёрства</strong>. Подключение, обучение и развитие уходят отдельному аккаунт-менеджеру и в оценке не учитываются вовсе. Резюме перечитаны заново — это не пересчёт прошлых баллов.</p>
+    <svg class="curve" viewBox="0 0 1180 10" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 8 C 260 8, 300 2, 560 2 S 920 8, 1180 3" fill="none" stroke="#FF7545" stroke-width="8" stroke-linecap="round"/>
+    </svg>
+  </header>
+
+  <div class="stats">
+    <div class="stat is-good"><b id="s-a">7</b><span>приоритет A — звать первыми</span></div>
+    <div class="stat is-accent"><b id="s-b">11</b><span>приоритет B</span></div>
+    <div class="stat"><b id="s-c">18</b><span>приоритет C — мимо роли</span></div>
+    <div class="stat"><b>5</b><span>с пометкой о достоверности</span></div>
+  </div>
+
+  <div class="callout">
+    <p><strong>Главное, что изменилось.</strong> Разделение роли перевернуло верх списка. Люди, чья сила была в обучении партнёров, выстраивании процессов и доведении до первой сделки, потеряли половину своей ценности — эта работа теперь не их. А те, кого раньше тянул вниз пробел «активации нет вообще», оказались наверху: именно этого от них больше и не требуется.</p>
+    <p><strong>Самое громкое падение — кандидат из Roistat</strong>, прежний лидер всех трёх подборок с девяткой. При перечитывании резюме выяснилось, что холодный поиск там не подтверждён ничем: ни источников, ни инструментов, ни цифр по касаниям, а рост канала описан через сегментацию уже приходящих лидов и интеграции с Click.ru, Jivo и Ingate. Плюс под ним работала команда из шести менеджеров, и личный вклад в двести привлечённых партнёров из резюме не вычленить. Это не значит, что он не умеет искать, — значит, что резюме этого не доказывает, а прежняя пятёрка была выставлена авансом.</p>
+    <p><strong>Пометка о достоверности</strong> стоит у пятерых, и её стоит читать раньше балла. Она означает, что ключевая цифра кандидата ничем не проверяется: закрыта NDA, смешана со входящим потоком или получена на площадке, куда партнёры приходили сами. Такие цифры — не повод вычёркивать, а повод задать на собеседовании ровно один точный вопрос.</p>
+  </div>
+
+  <div class="method">
+    <h2>Как считалось</h2>
+    <p>Четыре критерия вместо прежних шести-семи: всё, что относилось ко второй половине роли, убрано. Оценки от 1 до 5 выставлены по тексту резюме, итог — взвешенная сумма, приведённая к десятке.</p>
+    <div class="wlist">
+      <div>
+        <b>Хантинг и аутрич <i>× 3</i></b>
+        <p>Названы ли источники и каналы поиска, инструменты сбора баз и контактов, есть ли цифры по касаниям и конверсии, писал ли человек первые сообщения сам. Работа по готовой базе и входящий поток понижают оценку.</p>
+      </div>
+      <div>
+        <b>Продажи сложного b2b <i>× 2,5</i></b>
+        <p>Переговоры с ЛПР и собственниками, выявление потребности, отработка возражений, доведение до подписания, выполнение плана в цифрах. Он теперь не только ищет, но и закрывает.</p>
+      </div>
+      <div>
+        <b>Поток партнёров <i>× 2</i></b>
+        <p>Сколько партнёров человек привлёк лично и какого они размера, с поправкой на срок. Сотни небольших — пятёрка, единицы крупных — единица.</p>
+      </div>
+      <div>
+        <b>Личный вклад <i>× 2</i></b>
+        <p>Делал руками сам или руководил теми, кто делал. Титулы «руководитель канала» и «вёл команду» понижают: человек будет работать один.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="group">
+      <p>Приоритет</p>
+      <div class="chips" id="f-tier">
+        <button class="chip" type="button" data-v="all" aria-pressed="true">Все</button>
+        <button class="chip" type="button" data-v="A" aria-pressed="false">A</button>
+        <button class="chip" type="button" data-v="B" aria-pressed="false">B</button>
+        <button class="chip" type="button" data-v="C" aria-pressed="false">C</button>
+      </div>
+    </div>
+    <div class="group">
+      <p>Этап</p>
+      <div class="chips" id="f-stage">
+        <button class="chip" type="button" data-v="all" aria-pressed="true">Все</button>
+        <button class="chip" type="button" data-v="Этап 1" aria-pressed="false">Первый</button>
+        <button class="chip" type="button" data-v="Этап 2" aria-pressed="false">Второй</button>
+        <button class="chip" type="button" data-v="Этап 3" aria-pressed="false">Третий</button>
+      </div>
+    </div>
+    <div class="group">
+      <p>Достоверность</p>
+      <div class="chips" id="f-check">
+        <button class="chip" type="button" data-v="all" aria-pressed="true">Все</button>
+        <button class="chip" type="button" data-v="clean" aria-pressed="false">Без пометок</button>
+        <button class="chip" type="button" data-v="flagged" aria-pressed="false">С пометкой</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tablecard">
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Кандидат</th>
+            <th scope="col">Этап</th>
+            <th scope="col">Ожидания</th>
+            <th scope="col" class="num">Итог</th>
+            <th scope="col">Было</th>
+            <th scope="col">Приоритет</th>
+            <th scope="col">Резюме</th>
+            <th scope="col"><span aria-hidden="true">&nbsp;</span></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="empty" id="empty" hidden>Под этот фильтр никто не попадает.</div>
+  </div>
+
+  <p class="note">Строку можно развернуть — внутри вердикт, чем подтверждён холод, инструменты и риски.</p>
+
+  <footer>
+    Резюме обезличены агентством, кандидаты идут под кодами своего этапа: нумерация у каждого этапа своя и между этапами не пересекается, поэтому этап указан рядом с кодом. Колонка «Было» — итоговый балл того же кандидата под прежнюю, цельную роль, где оценивались шесть-семь критериев, включая активацию и работу с системой учёта. Сравнивать эти две цифры напрямую нельзя: это разные шкалы и разные вопросы. Оценки выставлены по тексту резюме, без интервью и рекомендаций. Ссылки на PDF ведут в папки Google Drive соответствующего этапа.
+  </footer>
+</div>
+
+<script>
+const DATA = [
+ {
+  "id": "Э3-CV8",
+  "code": "CV8",
+  "company": "Контур · ИБ-сервисы, ранее Контур SaaS для МСБ",
+  "stage": "Этап 3",
+  "slug": "step-3",
+  "pay": "200 тыс.",
+  "drive": "1EPN1NIdKvFijVywN5YP_3eMju_BcB7JZ",
+  "hunting": 5,
+  "b2b": 5,
+  "volume": 3.5,
+  "solo": 5,
+  "score": 9.4,
+  "tier": "A",
+  "old": {
+   "s": 7.5,
+   "t": "A"
+  },
+  "ev": "Самое сильное подтверждение в выборке: «эксперт в холодном поиске, выходе на ЛПР», «инициировал проект с нуля через холод», отдельная метрика «конверсия по поиску ЛПР и его контактов 74%». Плюс сам продавал Контур.Компас — инструмент формирования b2b-баз.",
+  "verdict": "По хантингу это эталон: холод назван прямо, с воронкой, конверсиями и циклами сделок, всё сделано руками без подчинённых. Сегмент МСБ в Контуре близок к нашим внедренцам и консультантам. Главный риск в другом: последние два с половиной года он живёт в Enterprise и ТОП-500 с циклами 7–9 месяцев.",
+  "risks": [
+   "2,5 года Enterprise и ТОП-500 — привычка к длинным дорогим сделкам",
+   "Партнёрский канал только через ИТ-интеграторов, одной строкой",
+   "Ожидания 200 тыс. — верх вилки",
+   "Продавал продукт конечному клиенту, а не вербовал посредника"
+  ],
+  "tools": [
+   "Контур.Компас",
+   "Контур.Фокус",
+   "Bitrix24",
+   "PowerBI",
+   "Miro",
+   "SPIN",
+   "GAP",
+   "батл-карты"
+  ]
+ },
+ {
+  "id": "Э3-CV2",
+  "code": "CV2",
+  "company": "Mitgo · ранее два affiliate-стартапа",
+  "stage": "Этап 3",
+  "slug": "step-3",
+  "pay": "200 тыс.",
+  "drive": "1MXS7A0b_48I_jbDbi0yWOtz1Ta7sEoX9",
+  "hunting": 4.5,
+  "b2b": 3.5,
+  "volume": 5,
+  "solo": 5,
+  "score": 8.9,
+  "tier": "A",
+  "old": {
+   "s": 7,
+   "t": "B"
+  },
+  "ev": "Самое прямое подтверждение: «холодный поиск и привлечение новых вебмастеров, агентств, рекламных и партнерских сетей», «полностью самостоятельная работа в стартапе с нуля, без тимлида». Инструменты сбора баз, однако, не названы.",
+  "verdict": "Лучший профиль по чистоте охоты и объёму: 303 партнёра привлечены лично, холодный поиск назван прямым текстом, работала в одиночку без руководителя. Тип партнёров структурно похож на наш — мелкие агентства и сети, то есть поток. Риск в том, что в affiliate партнёрство подключается быстро и без сложного продажного цикла.",
+  "risks": [
+   "Affiliate и CPA вместо внедренцев CRM и digital-агентств",
+   "Сложный b2b-цикл с возражениями не подтверждён",
+   "Пробел: последнее место закончилось в апреле 2026",
+   "Два места под NDA — результаты не проверить"
+  ],
+  "tools": [
+   "конференции и отраслевые мероприятия"
+  ],
+  "check": "303 партнёра опираются только на её слова: два места работы указаны под NDA, без названий компаний"
+ },
+ {
+  "id": "Э1-CV8",
+  "code": "CV8",
+  "company": "CloudPayments · эквайринг",
+  "stage": "Этап 1",
+  "slug": "step-1",
+  "pay": "не указаны",
+  "drive": "1bbzHGhdlSbCophBmC-Sqz8VV-jHMPCVa",
+  "hunting": 4,
+  "b2b": 4,
+  "volume": 5,
+  "solo": 5,
+  "score": 8.8,
+  "tier": "A",
+  "old": {
+   "s": 8,
+   "t": "A"
+  },
+  "ev": "Прямо написано «полный цикл привлечения партнеров: холодный поиск или входящие обращения, переговоры, заключение договоров», сама оптимизировала скрипты коммуникации. Но холод идёт в связке с входящими, инструменты сбора баз не названы.",
+  "verdict": "Самое точное попадание по сегменту и масштабу: 100+ привлечённых партнёров за год именно в целевых нишах — CMS и CRM-платформы, digital-агентства, разработчики, бухгалтерские сервисы. Поток небольших партнёров, личный вклад, план в цифрах. Главный пробел — не доказано, что поток был именно холодным.",
+  "risks": [
+   "Доля входящих в этих 100+ партнёрах не раскрыта",
+   "Не названо ни одного инструмента сбора баз",
+   "Половина обязанностей — сопровождение действующих партнёров",
+   "Короткий трек до CloudPayments: франшиза 11 месяцев, до этого гостиница"
+  ],
+  "tools": [
+   "AmoCRM",
+   "MS Excel"
+  ],
+  "check": "Холодный поиск в резюме идёт в связке со входящими обращениями — доля холода в 100+ партнёрах не раскрыта"
+ },
+ {
+  "id": "Э3-CV5",
+  "code": "CV5",
+  "company": "Тест АйТи · ранее Метр Квадратный, Remark Digital",
+  "stage": "Этап 3",
+  "slug": "step-3",
+  "pay": "220 тыс.",
+  "drive": "1Vg5isso4tP_jMOh4Tlivir_bf7mZSQ47",
+  "hunting": 4,
+  "b2b": 4,
+  "volume": 5,
+  "solo": 4.5,
+  "score": 8.6,
+  "tier": "A",
+  "old": {
+   "s": 8,
+   "t": "A"
+  },
+  "ev": "Самое прямое подтверждение по объёму: «поиск и подключение партнеров к работе с площадкой», активное тестирование гипотез по каналам, личное написание скриптов и шаблонов писем для b2b-отдела. Слова «холодный поиск» и инструменты типа Apollo не названы.",
+  "verdict": "Лучшее попадание по масштабу: 2000+ подключённых мелких партнёров-риэлторов и агентств — ровно нужный поток, а не штучные интеграторы. Сам писал скрипты и шаблоны писем, тестировал каналы, а в Remark Digital продавал внедрение Битрикс24 и amoCRM, то есть изнутри знает целевой сегмент.",
+  "risks": [
+   "Слово «холодный» явно не написано, инструменты сбора баз не названы",
+   "В Тест АйТи фокус сместился на аккаунтинг и обучение — половину работы, которую мы не оцениваем",
+   "Частая смена мест в 2022–2024",
+   "Ожидание 220 тыс. — верх вилки"
+  ],
+  "tools": [
+   "amoCRM",
+   "Битрикс24",
+   "свои скрипты и шаблоны писем",
+   "Sales Guide"
+  ],
+  "check": "Слово «холодный» в резюме не написано ни разу; 2000 подключений — классифайд, часть агентств приходила на площадку сама"
+ },
+ {
+  "id": "Э3-CV13",
+  "code": "CV13",
+  "company": "Gettransfer · ранее Expedia Group, Infobip",
+  "stage": "Этап 3",
+  "slug": "step-3",
+  "pay": "160–220 тыс.",
+  "drive": "1XpL-5H90a0v18vMePj7K_HMGm0CYMrWL",
+  "hunting": 4.5,
+  "b2b": 4,
+  "volume": 3.5,
+  "solo": 5,
+  "score": 8.5,
+  "tier": "A",
+  "old": {
+   "s": 7,
+   "t": "B"
+  },
+  "ev": "Прямо выделен пункт «outbound лидогенерация: активный поиск и привлечение новых B2B-партнёров через звонки, а также outreach-инструменты Apollo, LinkedIn Sales Navigator, ZoomInfo», подкреплённый результатом восемь партнёров за месяц и ростом базы на 15%.",
+  "verdict": "Самый точный матч по механике охоты: назван инструментальный стек холодного аутрича, есть темп привлечения в месяц, работа руками без подчинённых, переговоры с ЛПР и собственниками в Expedia. Масштаб ближе к нужному — поток партнёров, а не штучные интеграторы.",
+  "risks": [
+   "Чужой сегмент: travel и OTA",
+   "Заметная доля функций — сопровождение и документооборот",
+   "Формулировка про выполнение плана неоднозначна",
+   "Даты Infobip и Expedia пересекаются; с декабря 2025 опыт обрывается"
+  ],
+  "tools": [
+   "Apollo",
+   "LinkedIn Sales Navigator",
+   "ZoomInfo",
+   "AmoCRM",
+   "Bitrix24"
+  ]
+ },
+ {
+  "id": "Э3-CV11",
+  "code": "CV11",
+  "company": "Адмитад · ранее Affise, Гнездо.ру",
+  "stage": "Этап 3",
+  "slug": "step-3",
+  "pay": "130–180 тыс.",
+  "drive": "1f2vibhbGK8l5b--MQ6m1S1HsPc9vz9Lk",
+  "hunting": 4,
+  "b2b": 4,
+  "volume": 4,
+  "solo": 5,
+  "score": 8.4,
+  "tier": "A",
+  "old": {
+   "s": 6.5,
+   "t": "B"
+  },
+  "ev": "Прямо написано «холодные звонки» в навыках и «в холодную привлёк 20+ крупных паблишеров». Есть конверсия воронки 7% и числа по переговорам. Минус: там же «работа с входящими лидами», инструменты сбора баз не названы.",
+  "verdict": "Лучшее совпадение по типу партнёра: восемь лет подряд он вербует агентства, CPA-сети, паблишеров и арбитражные команды — ровно ту публику, что приводит клиентов, и привык мотивировать её зарабатывать на партнёрстве. Объёмы правильного порядка: 80+ клиентов за 15 месяцев, 100+ переговоров. Делал всё сам.",
+  "risks": [
+   "Affiliate-среда отличается от внедренцев amoCRM",
+   "Основной источник — конференции, а не холодный поиск по реестрам",
+   "Часть опыта в gambling и крипте",
+   "Резюме сырое: дубли и незаполненный плейсхолдер «X%»"
+  ],
+  "tools": [
+   "AmoCRM",
+   "Bitrix24",
+   "AdFox",
+   "Header Bidding",
+   "конференции CIS и MENA"
+  ]
+ },
+ {
+  "id": "Э3-CV4",
+  "code": "CV4",
+  "company": "Совкомбанк · ранее АльфаСтрахование-Жизнь",
+  "stage": "Этап 3",
+  "slug": "step-3",
+  "pay": "не указаны",
+  "drive": "1x660G2O3raeNQjabkh1XDaB_P7jfXY0k",
+  "hunting": 4,
+  "b2b": 3.5,
+  "volume": 5,
+  "solo": 4.5,
+  "score": 8.4,
+  "tier": "A",
+  "old": {
+   "s": 5.5,
+   "t": "C"
+  },
+  "ev": "Подтверждён формулировкой «сформировала и развивала pipeline партнёрств: от поиска и cold outreach до закрытия и запуска». Минус: тут же обработка 35+ входящих лидов еженедельно, инструментов не названо ни одного.",
+  "verdict": "По цифрам один из сильнейших: 400+ подключённых партнёров и 100+ инициированных лично, cold outreach написан прямым текстом, масштаб совпадает с задачей. Главные вопросы — непрозрачность: «социальный проект» банка не объяснён, непонятно, кто эти партнёры, а 35+ входящих в неделю размывают заслугу холодного поиска.",
+  "risks": [
+   "Непрозрачный контекст «социального проекта» и типа партнёров",
+   "Параллельно шёл входящий поток 35+ лидов в неделю",
+   "Ни одного инструмента поиска или CRM",
+   "Банк и страхование вместо IT, плюс проектный уклон"
+  ],
+  "tools": [],
+  "check": "Цифру 400+ партнёров нечем проверить: «социальный проект» банка не раскрыт, и параллельно шёл входящий поток 35+ лидов в неделю"
+ },
+ {
+  "id": "Э1-CV5",
+  "code": "CV5",
+  "company": "Softline · ранее Дормакаба, Баурс",
+  "stage": "Этап 1",
+  "slug": "step-1",
+  "pay": "не указаны",
+  "drive": "1ZziwdlUDFvZzDASwBLFrNxdhzY27zkvN",
+  "hunting": 3,
+  "b2b": 5,
+  "volume": 3.5,
+  "solo": 4.5,
+  "score": 7.9,
+  "tier": "B",
+  "old": {
+   "s": 7,
+   "t": "B"
+  },
+  "ev": "«Холодные звонки» названы только на позиции в Баурсе и там в связке с входящими лидами. В Softline и Дормакаба рост дан за счёт внутренней неактивной базы; источники поиска не названы.",
+  "verdict": "Сильные сложные b2b-продажи и переговоры с первыми лицами, 50 партнёров за год — формально неплохой объём. Но тип партнёров не тот: интеграторы, дистрибьюторы, реселлеры, госсектор, чеки от 100 млн. Холодный поиск подтверждён слабо: заметная часть результата получена из внутренней базы.",
+  "risks": [
+   "Крупные интеграторы и госсектор вместо потока мелких",
+   "Привычка к циклу и чеку 100+ млн",
+   "Рост прямо приписан работе с готовой неактивной базой",
+   "До Softline — оборудование и вентиляция"
+  ],
+  "tools": [
+   "Bitrix24",
+   "AmoCRM",
+   "1C",
+   "Jira"
+  ]
+ },
+ {
+  "id": "Э2-CV3",
+  "code": "CV3",
+  "company": "МТС Рекламные технологии",
+  "stage": "Этап 2",
+  "slug": "step-2",
+  "pay": "от 130 тыс.",
+  "drive": "1KKHDgOYzAtaAqvGJxpiDCw_1LfTuhT8c",
+  "hunting": 3.5,
+  "b2b": 4,
+  "volume": 4,
+  "solo": 4.5,
+  "score": 7.9,
+  "tier": "B",
+  "old": {
+   "s": 5.5,
+   "t": "C"
+  },
+  "ev": "Подтверждён частично: «ведение переговоров, включая холодные звонки» и «привлекала контрагентов путем анализа рынка и посещения конференций, формируя собственную воронку». Против этого — на двух прошлых местах «работа с базой, обзвон клиентов», то есть по готовой базе.",
+  "verdict": "Единственная с объёмом 300+ новых контрагентов за год и стабильным перевыполнением плана, причём руками и с холодными звонками в арсенале. Главная оговорка: это клиенты, а не партнёры — опыта построения партнёрского канала нет, партнёрства упомянуты как дополнительные инициативы.",
+  "risks": [
+   "Привлекала клиентов, а не партнёров",
+   "На двух прошлых местах — работа по готовой базе",
+   "Резюме перегружено самопрезентацией, конкретики мало",
+   "Позиционирует себя как менеджера продукта"
+  ],
+  "tools": [
+   "AmoCRM",
+   "Bitrix24",
+   "Jira"
+  ]
+ },
+ {
+  "id": "Э3-CV3",
+  "code": "CV3",
+  "company": "Telecom Биржа · ранее IXcellerate",
+  "stage": "Этап 3",
+  "slug": "step-3",
+  "pay": "не указаны",
+  "drive": "1ui_CWs6Rv2_aUMZj0E1ogOzu8jsBbNZY",
+  "hunting": 4,
+  "b2b": 4,
+  "volume": 2.5,
+  "solo": 5,
+  "score": 7.8,
+  "tier": "B",
+  "old": {
+   "s": 5.5,
+   "t": "C"
+  },
+  "ev": "Прямым текстом: «привлекла 10+ новых корпоративных заказчиков через холодный поиск, outbound-продажи, прямые коммуникации». Холод заявлен однозначно, но без инструментов и цифр по касаниям.",
+  "verdict": "Холодный поиск подтверждён и сделан своими руками, без подчинённых, плюс есть реальный опыт партнёрской программы. Но масштаб не тот: 10+ заказчиков за 10 месяцев в тяжёлом ИБ и ЦОД-интеграторе с тендерами — это штучные сделки. Ни одного инструмента сбора баз не названо.",
+  "risks": [
+   "Единицы крупных заказчиков вместо потока",
+   "Ни одного инструмента поиска или CRM",
+   "Чужой сегмент: ИБ, ЦОД, тендеры, регуляторика",
+   "Короткий стаж в продажах — с 2023 года"
+  ],
+  "tools": []
+ },
+ {
+  "id": "Э3-CV7",
+  "code": "CV7",
+  "company": "Happy Tails (PetTech) · ранее Хронос IT, Гудвилл",
+  "stage": "Этап 3",
+  "slug": "step-3",
+  "pay": "не указаны",
+  "drive": "1HMqSOUgdDdNpKTOGoFWB4atVE9MhEIRr",
+  "hunting": 4,
+  "b2b": 4,
+  "volume": 3,
+  "solo": 4.5,
+  "score": 7.8,
+  "tier": "B",
+  "old": {
+   "s": 6,
+   "t": "B"
+  },
+  "ev": "В «Гудвилле» прямо: «самостоятельно выстраивала лидогенерацию: рекламные креативы, размещение на площадках, холодные звонки, прямой выход на собственников». В «Хронос» — процесс привлечения от холодного контакта до сделки. Инструменты сбора баз не названы.",
+  "verdict": "Есть прямое подтверждение холодного поиска руками и выхода на собственников, плюс 100+ закрытых сделок и чеки до 25 млн — доводить до подписания умеет самостоятельно. Партнёрский опыт слабее: всего шесть подключённых клиник за два года, нужный темп в десятки не доказан.",
+  "risks": [
+   "Объём партнёров мал: 6 клиник за 2 года",
+   "Нет инструментов сбора баз",
+   "Чужие сегменты: продажа готового бизнеса, ветклиники",
+   "Шесть лет в ЦСКА; стартап закончился пилотом без выручки"
+  ],
+  "tools": [
+   "Bitrix24"
+  ]
+ },
+ {
+  "id": "Э3-CV9",
+  "code": "CV9",
+  "company": "MWS · ранее Тбанк, МойОфис, SAP, IBM",
+  "stage": "Этап 3",
+  "slug": "step-3",
+  "pay": "не указаны",
+  "drive": "1PQvsZZ3JV5FRz6T_zlrw75SFhRdmwc05",
+  "hunting": 3.5,
+  "b2b": 4.5,
+  "volume": 3.5,
+  "solo": 4,
+  "score": 7.7,
+  "tier": "B",
+  "old": {
+   "s": 5.5,
+   "t": "C"
+  },
+  "ev": "Косвенно: «выход на Крок, Джет, Нейроникс с нулевого старта» и лидогенерация в Тбанке. Но слов «холодный поиск», источников и инструментов в резюме нет, а каналом названы партнёрские мероприятия.",
+  "verdict": "Единственная, у кого есть и темп, и запуск канала с нуля без входящего потока, и профильный продукт — AI-решения, речевая аналитика, ASR и TTS. Слабое место — масштаб партнёров: Крок, Джет, ISV, то есть крупные системные игроки, плюс много стратегии и бизнес-планирования вместо ежедневного аутрича.",
+  "risks": [
+   "Крупные интеграторы и ISV вместо мелких внедренцев",
+   "Инструменты не названы, холодный аутрич прямо не заявлен",
+   "Уклон в стратегию и трёхлетние планы",
+   "Опыт обрывается апрелем 2026"
+  ],
+  "tools": []
+ },
+ {
+  "id": "Э2-CV6",
+  "code": "CV6",
+  "company": "Digital Lab · ранее Яндекс, Diginetica, 2ГИС",
+  "stage": "Этап 2",
+  "slug": "step-2",
+  "pay": "от 180 тыс. + KPI",
+  "drive": "1HZrVjub4PBLvb32UbzGbBWjcqBrzWOLW",
+  "hunting": 4,
+  "b2b": 4,
+  "volume": 2.5,
+  "solo": 4.5,
+  "score": 7.6,
+  "tier": "B",
+  "old": {
+   "s": 6,
+   "t": "B"
+  },
+  "ev": "В Diginetica перечислены каналы поиска — холодные и тёплые звонки, соцсети, конференции и бизнес-завтраки; в 2ГИС назначение встреч холодными звонками; в Яндексе сам обучал других холодным звонкам. В навыках явно «Холодные звонки» и «Холодные продажи».",
+  "verdict": "Холодный поиск подтверждён в трёх местах подряд и своими руками, вплоть до съёмок видеоконтента для холодного знакомства. Опыт продажи SaaS в Diginetica с передачей клиента в аккаунт-отдел совпадает с нашей разделённой моделью почти буквально. Слабое место — ни одной цифры по количеству привлечённых.",
+  "risks": [
+   "Нет ни одного числа по лично привлечённым",
+   "В Digital Lab фокус на крупном бизнесе",
+   "Партнёрского канала не строил, весь опыт — прямые продажи",
+   "Пять работодателей за девять лет"
+  ],
+  "tools": [
+   "AmoCRM",
+   "LinkedIn",
+   "VK",
+   "Facebook",
+   "Instagram"
+  ]
+ },
+ {
+  "id": "Э3-CV6",
+  "code": "CV6",
+  "company": "Raiffeisenbank · ранее Альфа-Банк, МТС Финтех, Сравни.ру",
+  "stage": "Этап 3",
+  "slug": "step-3",
+  "pay": "не указаны",
+  "drive": "1Sn9IoiYaOUq69j3SNBGowyUJqDMB41dt",
+  "hunting": 4,
+  "b2b": 4,
+  "volume": 4,
+  "solo": 3,
+  "score": 7.6,
+  "tier": "B",
+  "old": {
+   "s": 6.5,
+   "t": "B"
+  },
+  "ev": "Подтверждено цифрами воронки первичного контакта: 500+ компаний, с которыми установил контакт, и база 200+ проработанных партнёров от первичного контакта до запуска. Источники и инструменты сбора баз не названы.",
+  "verdict": "Самая сильная воронка привлечения в числах: 500+ первичных контактов, 47 подписанных соглашений, 50+ партнёров за полгода, трижды поднимал канал с нуля. Темп нужный. Главный минус — три последние должности называются «руководитель канала», был тимлидом команды из трёх человек, и партнёры всюду крупные.",
+  "risks": [
+   "Три подряд должности «руководитель канала», тимлид команды",
+   "Финтех, банки, CPA-сети, ТОП-100 вместо SMB-внедренцев",
+   "Очень частая смена мест: Райффайзен 7 месяцев",
+   "Ожидания не указаны, банковский уровень может не совпасть"
+  ],
+  "tools": [
+   "JIRA",
+   "Figma",
+   "CPA-сети как канал"
+  ]
+ },
+ {
+  "id": "Э3-CV1",
+  "code": "CV1",
+  "company": "Anywayanyday · ранее Edzen, Skillfactory, admitad",
+  "stage": "Этап 3",
+  "slug": "step-3",
+  "pay": "не указаны",
+  "drive": "1Z7JQAWVRs5QwwnkXTQqGZnbShfa8PS50",
+  "hunting": 3.5,
+  "b2b": 2.5,
+  "volume": 4,
+  "solo": 5,
+  "score": 7.3,
+  "tier": "B",
+  "old": {
+   "s": 6,
+   "t": "B"
+  },
+  "ev": "Подтверждён косвенно: «ищу, привлекаю, подключаю и сопровождаю новых партнеров», сама подготовила скрипты коммуникации и TOV. Слов «холодный поиск» нет, источники и инструменты не названы.",
+  "verdict": "Есть релевантный факт — партнёрская база с нуля до 80+ в Edzen за год, своими руками и со своими скриптами. Но весь опыт в affiliate-плоскости: CPA-сети, купонные и кешбэк-сервисы — партнёры, которые подключаются по ставке, а не через переговоры с собственником. Большая часть обязанностей — аналитика канала и ставки.",
+  "risks": [
+   "Affiliate вместо внедренцев и агентств",
+   "Сложный b2b не подтверждён ни одной цифрой",
+   "Edzen и Anywayanyday идут внахлёст по датам",
+   "Четыре работодателя за пять лет"
+  ],
+  "tools": [
+   "Bitrix24",
+   "партнёрский Telegram-канал"
+  ]
+ },
+ {
+  "id": "Э2-CV1",
+  "code": "CV1",
+  "company": "Проектная работа · ранее Поток, Skipp, Skyeng",
+  "stage": "Этап 2",
+  "slug": "step-2",
+  "pay": "от 180 тыс. + KPI",
+  "drive": "1LIezTKtl_F3mlKDuKjesacvfxRGBapqf",
+  "hunting": 3,
+  "b2b": 5,
+  "volume": 2.5,
+  "solo": 3.5,
+  "score": 7.1,
+  "tier": "B",
+  "old": {
+   "s": 6.5,
+   "t": "B"
+  },
+  "ev": "В навыках прямо «холодные продажи», «поиск и привлечение клиентов», «автоматизация холодного поиска», «AI-агенты». В проектной работе — «самостоятельно занимался развитием каналов продаж, поиском и квалификацией клиентов». Конкретных источников и цифр по касаниям нет.",
+  "verdict": "Сильнейший по сложному b2b: длинный цикл, чеки 2–10 млн, переговоры с первыми лицами, выполнение плана в цифрах. Но привлекал он клиентов, а не партнёров: партнёрский опыт сводится к участию в чужих программах и двадцати совместным сделкам с одним партнёром. Холодный поиск заявлен словами и инструментами, но без источников и чисел.",
+  "risks": [
+   "Привлекал клиентов, а не партнёров",
+   "Привычка к крупным длинным сделкам",
+   "Холодный поиск декларирован без источников и цифр",
+   "Создавал отделы продаж и управлял командой; последний год — проектная занятость в Токио"
+  ],
+  "tools": [
+   "amoCRM",
+   "Битрикс24",
+   "Pipedrive",
+   "AI-агенты",
+   "автоматизация холодного поиска"
+  ]
+ },
+ {
+  "id": "Э3-CV10",
+  "code": "CV10",
+  "company": "Inshursale · ранее Первый БИТ, Квантум",
+  "stage": "Этап 3",
+  "slug": "step-3",
+  "pay": "200 тыс.",
+  "drive": "1rA4xYvIkvyOsmOdsvxK67CLG3bjFUlk3",
+  "hunting": 3.5,
+  "b2b": 4,
+  "volume": 2.5,
+  "solo": 4,
+  "score": 7.1,
+  "tier": "B",
+  "old": {
+   "s": 6,
+   "t": "B"
+  },
+  "ev": "Прямо написано «холодный поиск клиентов, переговоры с первыми лицами и техническими специалистами» в «Квантуме». Но источники, инструменты и цифры по касаниям не названы, а в партнёрских ролях слово «холодный» уже не повторяется.",
+  "verdict": "Заявил холодный поиск прямым текстом, плюс сильные продажные цифры и работа в Первом БИТе, то есть знание франчайзи-интеграторской среды 1С и Битрикс изнутри — соседний с нашим сегмент. Минус: объём привлечения партнёров дан только в процентах, абсолютного числа нет.",
+  "risks": [
+   "Объём только «+40%», абсолютных чисел нет",
+   "Холодный поиск подтверждён в клиентских продажах, не в партнёрских",
+   "Инструменты сбора баз не названы",
+   "Часть функционала — обучение менеджеров и координация офисов"
+  ],
+  "tools": [
+   "1С:CRM",
+   "тендерные площадки"
+  ]
+ },
+ {
+  "id": "Э1-CV1",
+  "code": "CV1",
+  "company": "МТС Бизнес · ранее RecFaces",
+  "stage": "Этап 1",
+  "slug": "step-1",
+  "pay": "не указаны",
+  "drive": "1tJT7XluDPzfLkL31GER-wwMaoYsX-mnH",
+  "hunting": 3,
+  "b2b": 4,
+  "volume": 2,
+  "solo": 4,
+  "score": 6.5,
+  "tier": "B",
+  "old": {
+   "s": 5,
+   "t": "C"
+  },
+  "ev": "Явно написано «поиск и формирование воронки партнеров, проведение outreach, follow-up и переговоров», LinkedIn есть в навыках. Но слова «холодный» нет, источники и инструменты не названы.",
+  "verdict": "Опыт построения партнёрского направления с нуля есть и аутрич назван прямо, но масштаб принципиально другой: семь стратегических партнёров за два года. Много времени уходило на упаковку продуктов, регламенты, юнит-экономику и координацию команд, а не на поток холодных контактов.",
+  "risks": [
+   "Единицы крупных стратегических партнёров",
+   "Сильный продуктово-проектный уклон",
+   "Партнёры — банки, страховые, крупные техкомпании",
+   "С августа 2026 перерыв не объяснён"
+  ],
+  "tools": [
+   "1C CRM",
+   "LinkedIn",
+   "Jira",
+   "Power BI"
+  ]
+ },
+ {
+  "id": "Э1-HR1",
+  "code": "HR1",
+  "company": "АЛМИ ПАРТНЕР · ранее Аксофт, VOXYS",
+  "stage": "Этап 1",
+  "slug": "step-1",
+  "pay": "350 000 ₽",
+  "drive": "18oN6OjcNW1fORtYR56CrUMUngmxo7Ous",
+  "hunting": 2.5,
+  "b2b": 4.5,
+  "volume": 2,
+  "solo": 3.5,
+  "score": 6.3,
+  "tier": "C",
+  "old": {
+   "s": 6,
+   "t": "B"
+  },
+  "ev": "Явный холодный аутрич есть только в VOXYS за девять месяцев: «формирование новой клиентской базы и холодные продажи по ней» — но там же работа по имеющейся базе и со входящими. В партнёрских ролях работа идёт по закреплённой enterprise-базе.",
+  "verdict": "Очень сильный enterprise-переговорщик: ЛПР уровня CEO и CEO-1, длинные циклы, крупные чеки, перевыполнение планов в цифрах. Но все партнёрские места — управление закреплённой базой крупных системных интеграторов, а не холодный набор новых мелких партнёров.",
+  "risks": [
+   "Ожидание 350 тыс. — несовпадение по вилке",
+   "Enterprise-интеграторы и госзакупки",
+   "Нет ни одной цифры по лично привлечённым партнёрам",
+   "Был тимлидом команды; три компании за два года"
+  ],
+  "tools": [
+   "стратегические карты партнёра"
+  ]
+ },
+ {
+  "id": "Э2-CV5",
+  "code": "CV5",
+  "company": "Специальная интеграция · ранее Манго Телеком",
+  "stage": "Этап 2",
+  "slug": "step-2",
+  "pay": "от 150 тыс. + KPI",
+  "drive": "1-NNZgzL8sQnfTjMIfMLMU-OZQV_2rtSO",
+  "hunting": 2,
+  "b2b": 3.5,
+  "volume": 3,
+  "solo": 4.5,
+  "score": 6.3,
+  "tier": "C",
+  "old": {
+   "s": 7,
+   "t": "B"
+  },
+  "ev": "Прямых признаков холодного поиска нет: написано «установление и поддержание отношений с партнёрами-интеграторами», источники и цифры по касаниям не названы. Есть только итоговая цифра 20+ привлечённых партнёров.",
+  "verdict": "Единственный с прямым фактом «привлёк 20+ партнёров-интеграторов» и чистым индивидуальным вкладом без команды. Плюс четыре года в Манго Телеком — близкий продукт и понимание сегмента малого бизнеса. Минус: 20+ за два года это медленно, а сам механизм поиска нигде не раскрыт.",
+  "risks": [
+   "Механика холодного поиска не подтверждена",
+   "Основной бэкграунд — клиентский сервис и допродажи",
+   "Темп низкий: 20+ за два года",
+   "Партнёры — ИБ-интеграторы, а не внедренцы CRM"
+  ],
+  "tools": [
+   "1С:CRM ПРОФ"
+  ]
+ },
+ {
+  "id": "Э1-CV6",
+  "code": "CV6",
+  "company": "Roistat · ранее Столото, Pons Technology",
+  "stage": "Этап 1",
+  "slug": "step-1",
+  "pay": "не указаны",
+  "drive": "1xnVp96mYMOJtGeHqT9GWmJpluEMfIp9C",
+  "hunting": 2.5,
+  "b2b": 4,
+  "volume": 4,
+  "solo": 2,
+  "score": 6.2,
+  "tier": "C",
+  "old": {
+   "s": 9,
+   "t": "A"
+  },
+  "ev": "Холодный поиск нигде не заявлен — ни источников, ни инструментов, ни цифр по касаниям. Вместо этого «флоу сегментации лидов» и интеграции с Click.ru, Jivo, Ingate, то есть работа с уже приходящим потоком.",
+  "verdict": "Сегмент почти идеальный: партнёры Roistat — это агентства и внедренцы, и +200 партнёров за четыре года совпадает с задачей по масштабу. Но под его началом работала команда из шести менеджеров, и из резюме невозможно понять, сколько из этих партнёров привёл он сам. Холодный аутрич руками не подтверждён ни одним фактом.",
+  "risks": [
+   "Команда из 6 менеджеров — личный вклад в 200 партнёров не вычленить",
+   "Холодный поиск и инструменты сбора баз не упомянуты вообще",
+   "Последние годы — рост в сторону руководства",
+   "До Roistat: Столото и FMCG-дистрибуция, чужой сегмент"
+  ],
+  "tools": [
+   "Roistat",
+   "Jira",
+   "Platrum",
+   "SPIN"
+  ],
+  "check": "Личный вклад не отделить от работы команды из шести менеджеров, которой он руководил"
+ },
+ {
+  "id": "Э1-CV2",
+  "code": "CV2",
+  "company": "Insight AI · ранее ТАСС, Эверест",
+  "stage": "Этап 1",
+  "slug": "step-1",
+  "pay": "не указаны",
+  "drive": "1IWDTEDv5iAz7_uqD00ImnD3V934HFRjs",
+  "hunting": 3,
+  "b2b": 2.5,
+  "volume": 2,
+  "solo": 5,
+  "score": 6.2,
+  "tier": "C",
+  "old": {
+   "s": 5.5,
+   "t": "B"
+  },
+  "ev": "Частично подтверждён: сама писала шаблоны писем и сообщений для аутрича, искала партнёров среди IT-компаний, регистрировала компанию в каталогах и ассоциациях. Слов «холодный поиск» нет, цифр по касаниям нет.",
+  "verdict": "Сильная сторона — всё делала руками и сама писала шаблоны аутрича, плюс умение искать каналы присутствия. Но объём привлечения дан только в процентах от неизвестной базы, а основной трек — сопровождение и операционная поддержка уже имеющихся партнёров, то есть работа аккаунт-менеджера.",
+  "risks": [
+   "Объём только в процентах, абсолютных чисел нет",
+   "Основной трек — сопровождение, медиа-сегмент",
+   "Нет ни одной цифры по плану продаж или выручке",
+   "Роль в Insight AI длилась всего год"
+  ],
+  "tools": [
+   "Битрикс24",
+   "отраслевые каталоги",
+   "рейтинги",
+   "ассоциации"
+  ]
+ },
+ {
+  "id": "Э1-HR2",
+  "code": "HR2",
+  "company": "Orion soft · ранее Microsoft, Гравитон",
+  "stage": "Этап 1",
+  "slug": "step-1",
+  "pay": "не указаны",
+  "drive": "1pYRFAKZJWbkGDw70O7iBCyxSfyWjdXSf",
+  "hunting": 2.5,
+  "b2b": 4,
+  "volume": 2,
+  "solo": 4,
+  "score": 6.2,
+  "tier": "C",
+  "old": {
+   "s": 6.5,
+   "t": "B"
+  },
+  "ev": "В функционале Гравитона есть «поиск и привлечение новых партнеров», каналом названы профильные конференции. Явного холодного аутрича, инструментов сбора баз и цифр по касаниям нет.",
+  "verdict": "Весь опыт — работа с ТОП-интеграторами и дистрибьюторами уровня Крок, Софтлайн и Ай-Теко, то есть ровно тот масштаб, который нам не нужен. Львиная доля достижений — развитие и обучение уже подключённых партнёров, присвоение статусов, pipe-review, то есть зона аккаунт-менеджера.",
+  "risks": [
+   "Крупные системные интеграторы вместо мелких внедренцев",
+   "Центр тяжести — развитие существующих, а не привлечение",
+   "Канал поиска — конференции и вендорские связи",
+   "Корпоративный бэкграунд Microsoft: привычка к входящему интересу"
+  ],
+  "tools": [
+   "Power BI",
+   "MS Office"
+  ]
+ },
+ {
+  "id": "Э1-CV3",
+  "code": "CV3",
+  "company": "ЛАНИТ · ИБ и Microsoft Cloud",
+  "stage": "Этап 1",
+  "slug": "step-1",
+  "pay": "не указаны",
+  "drive": "1fzGsURQwgOrrauvg4RadAl3DV4SpjZHQ",
+  "hunting": 2,
+  "b2b": 4,
+  "volume": 2,
+  "solo": 4.5,
+  "score": 6.1,
+  "tier": "C",
+  "old": {
+   "s": 6.5,
+   "t": "B"
+  },
+  "ev": "Указано только «привлечение новых и развитие действующих системных интеграторов, реактивация партнеров» — без источников, инструментов и цифр по касаниям. Холодный аутрич не подтверждён.",
+  "verdict": "Сильный вендорский менеджер двухзвенной модели: переговоры с первыми лицами, планы 95–105%. Но масштаб обратный нужному: 15–20 крупных ИТ-интеграторов за год вместо десятков мелких внедренцев, а сам процесс поиска нигде не раскрыт.",
+  "risks": [
+   "Крупные системные интеграторы и дистрибуция ИБ",
+   "Холодный поиск не подтверждён ни одной строкой",
+   "Масштаб — единицы и десятки крупных, не поток",
+   "Пробел май 2021 — декабрь 2023 не объяснён"
+  ],
+  "tools": [
+   "deal registration",
+   "MS Excel"
+  ]
+ },
+ {
+  "id": "Э2-CV4",
+  "code": "CV4",
+  "company": "Wata · ранее AMS Software (SaaS)",
+  "stage": "Этап 2",
+  "slug": "step-2",
+  "pay": "от 160 тыс. + KPI",
+  "drive": "1nwhm5q3pbH4qrYqVYMnnY0TtlRw1scRJ",
+  "hunting": 2,
+  "b2b": 4,
+  "volume": 2,
+  "solo": 4,
+  "score": 5.9,
+  "tier": "C",
+  "old": {
+   "s": 7.5,
+   "t": "B"
+  },
+  "ev": "Холодный поиск не подтверждён. Прямо указан входящий поток — «10 входящих партнёрских запросов ежедневно»; роли называются Customer Success и Key Account Manager.",
+  "verdict": "Для роли охотника не подходит: весь опыт построен вокруг удержания, развития и допродаж в уже существующем портфеле, а партнёрский поток приходил входящим — это прямо написано в резюме. Навыки переговоров с CIO и CTO есть, но применялись к пресейлу по входящим.",
+  "risks": [
+   "Холодный поиск не подтверждён вообще",
+   "Профиль Customer Success и KAM — вторая половина роли",
+   "Партнёры — крупные дистрибьюторы Treolan, Softline, КРОК",
+   "Был тимлидом отдела из 3 специалистов"
+  ],
+  "tools": [
+   "amoCRM",
+   "Superset"
+  ]
+ },
+ {
+  "id": "Э1-HR7",
+  "code": "HR7",
+  "company": "НТЦ ТЕКО · ранее Энергомера",
+  "stage": "Этап 1",
+  "slug": "step-1",
+  "pay": "не указаны, готов в МСК",
+  "drive": "16EUCblrnZIeGVovMvH3slt6a1LfDEqby",
+  "hunting": 2.5,
+  "b2b": 4,
+  "volume": 2,
+  "solo": 2.5,
+  "score": 5.6,
+  "tier": "C",
+  "old": {
+   "s": 5,
+   "t": "C"
+  },
+  "ev": "В обязанностях «поиск и привлечение новых B2B-партнёров», но без единого источника, инструмента или числа по касаниям. Слова «холодный поиск» нет, каналом названы международные выставки.",
+  "verdict": "Сильные переговоры с первыми лицами и реальное построение дистрибьюторской сети с нуля, но это сеть дистрибьюторов железа в Латинской Америке — единицы крупных контрагентов на страну, а не поток мелких агентств. Количества привлечённых партнёров и инструментов поиска в резюме нет.",
+  "risks": [
+   "Единичные крупные дистрибьюторы вместо потока",
+   "Чужой сегмент: промышленная электроника",
+   "Титул «руководитель продаж», команда из 4 человек",
+   "Ни одного числа по лично привлечённым партнёрам"
+  ],
+  "tools": [
+   "Bitrix"
+  ]
+ },
+ {
+  "id": "Э1-HR5",
+  "code": "HR5",
+  "company": "Яндекс Команда для бизнеса",
+  "stage": "Этап 1",
+  "slug": "step-1",
+  "pay": "не указаны",
+  "drive": "1rFIdCTVmhnM8lnfqfDgG7V1DcBnaAjFL",
+  "hunting": 1.5,
+  "b2b": 2.5,
+  "volume": 3.5,
+  "solo": 4.5,
+  "score": 5.6,
+  "tier": "C",
+  "old": {
+   "s": 6,
+   "t": "B"
+  },
+  "ev": "Холодный поиск не подтверждён: ни источников, ни инструментов, ни цифр по касаниям. Вся логика резюме — подключение, онбординг и удержание уже найденных партнёров.",
+  "verdict": "Это ровно вторая половина вакансии, которую мы не оцениваем: онбординг, обучение, retention 98%, координация с продуктом и юристами. Сто подключённых партнёров за год — правильный масштаб, но «подключила» здесь значит завести и запустить, а не найти вхолодную. Сама ищет позицию Customer Success Manager.",
+  "risks": [
+   "Профиль ровно под аккаунт-менеджера",
+   "Холодный аутрич не подтверждён ничем",
+   "Сама заявляет цель Customer Success — несовпадение по роли",
+   "Системных b2b-продаж меньше двух лет"
+  ],
+  "tools": [
+   "Битрикс24"
+  ]
+ },
+ {
+  "id": "Э1-CV7",
+  "code": "CV7",
+  "company": "Сравни.ру · ранее admitad",
+  "stage": "Этап 1",
+  "slug": "step-1",
+  "pay": "не указаны",
+  "drive": "1s8VfeXJSjBGu9x0Y28LOeWxfGe2lES2W",
+  "hunting": 2,
+  "b2b": 3.5,
+  "volume": 2,
+  "solo": 4,
+  "score": 5.6,
+  "tier": "C",
+  "old": {
+   "s": 5,
+   "t": "C"
+  },
+  "ev": "Заявлено «поиск и привлечение новых партнеров» и участие в конференциях, но без источников, инструментов и цифр. Слов «холодный поиск» нет, ни одной CRM не названо.",
+  "verdict": "Партнёрский канал по профилю близок, но партнёры — банки, МФО, телеком и страховые: крупные штучные интеграции, которых за полтора года набралось двадцать. Формулировки целиком про ведение и развитие, холодная добыча руками не доказана.",
+  "risks": [
+   "Крупные федеральные партнёры вместо десятков небольших",
+   "Холодный поиск не подтверждён, инструментов нет",
+   "Акцент на аккаунтинге и координации",
+   "Девять лет администратором до 2018 года"
+  ],
+  "tools": []
+ },
+ {
+  "id": "Э1-CV4",
+  "code": "CV4",
+  "company": "Fintech · ранее UniCredit, ВТБ",
+  "stage": "Этап 1",
+  "slug": "step-1",
+  "pay": "не указаны",
+  "drive": "1TiL-GSgqttFMI2hDhkPK5n-Py-9xKpDy",
+  "hunting": 2.5,
+  "b2b": 4,
+  "volume": 2.5,
+  "solo": 2,
+  "score": 5.6,
+  "tier": "C",
+  "old": {
+   "s": 7.5,
+   "t": "A"
+  },
+  "ev": "В навыках «холодные продажи» и «разработка скриптов продаж», в прошлом «поиск и привлечение риэлторов, застройщиков, агентств недвижимости». Конкретные источники, инструменты и цифры по касаниям не подтверждены.",
+  "verdict": "Опыт запуска агентского направления с нуля есть, но партнёры — крупные банки, страховые и IT-компании, то есть чужой масштаб. Основной вес резюме — методология, обучение партнёров, мотивация и процессы, то есть именно та половина роли, которую забрал аккаунт-менеджер.",
+  "risks": [
+   "Руководитель направления, координация 100+ сотрудников",
+   "Банки и страховые вместо мелких внедренцев",
+   "Сильный крен в обучение и тренинги",
+   "Нет цифр по количеству привлечённых партнёров"
+  ],
+  "tools": []
+ },
+ {
+  "id": "Э2-CV2",
+  "code": "CV2",
+  "company": "Realme · ранее Huawei, Wildberries",
+  "stage": "Этап 2",
+  "slug": "step-2",
+  "pay": "от 130 тыс.",
+  "drive": "1FXJumQGsSw3sUo9yUd4LumlUdxMaIbXj",
+  "hunting": 3,
+  "b2b": 2,
+  "volume": 1,
+  "solo": 5,
+  "score": 5.5,
+  "tier": "C",
+  "old": {
+   "s": 4.5,
+   "t": "C"
+  },
+  "ev": "Прямо написано: «поиск и квалификация новых партнеров, холодный поиск, работа с базой потенциальных клиентов». Но стаж в роли пять месяцев, источники, инструменты и любые цифры отсутствуют.",
+  "verdict": "Единственная, у кого холодный поиск партнёров написан прямым текстом и явно делается руками без подчинённых. Но это джуниор с пятью месяцами в роли, нулевой подтверждённой результативностью и сегментом рекламодателей и mobile adtech. Остальной опыт — операционка и методическая работа.",
+  "risks": [
+   "Объём привлечения не подтверждён ни одной цифрой",
+   "Junior-уровень, 5 месяцев в роли, продаж сложного b2b нет",
+   "Чужой сегмент: OEM и mobile advertising",
+   "Частая смена мест и профиля"
+  ],
+  "tools": [
+   "CRM",
+   "AppsFlyer",
+   "Adjust",
+   "Диадок",
+   "1С",
+   "Jira"
+  ]
+ },
+ {
+  "id": "Э1-HR3",
+  "code": "HR3",
+  "company": "LIFE PAY · ранее Форвард Лизинг, Смарта",
+  "stage": "Этап 1",
+  "slug": "step-1",
+  "pay": "не указаны",
+  "drive": "1ZUzOhEWPvXz6I4v61rpPlip87AM6R7Bf",
+  "hunting": 2,
+  "b2b": 2.5,
+  "volume": 1.5,
+  "solo": 3.5,
+  "score": 4.7,
+  "tier": "C",
+  "old": {
+   "s": 6,
+   "t": "B"
+  },
+  "ev": "Единственное прямое указание — в «Цунами»: «развивала партнёрскую сеть с запуска проекта: выход на ЛПР, переговоры». Источники, инструменты и холодные касания не подтверждены; CRM названы как системы ведения, а не поиска.",
+  "verdict": "Профиль почти целиком операционный: регламенты, SLA, бэклог доработок, дебиторка, обучающие порталы — сопровождение уже подключённых партнёров, а не их поиск. Партнёров в биографии единицы и все федеральные, что противоположно нужному потоку.",
+  "risks": [
+   "Почти нет доказательств холодного поиска",
+   "Единицы крупных федеральных партнёров",
+   "Крен в онбординг, обучение и процессы",
+   "Разрыв в опыте 2020–2021, разнородные сегменты"
+  ],
+  "tools": [
+   "Bitrix24",
+   "AmoCRM",
+   "Kaiten",
+   "Jira",
+   "1С"
+  ]
+ },
+ {
+  "id": "Э3-CV12",
+  "code": "CV12",
+  "company": "WOWPACKS · ранее RUSSPASS, Московский планетарий",
+  "stage": "Этап 3",
+  "slug": "step-3",
+  "pay": "150 тыс.",
+  "drive": "1QEKxv9TOvZI6Hr3flhWc7Qffx1_3Q_xC",
+  "hunting": 2,
+  "b2b": 2,
+  "volume": 2,
+  "solo": 3.5,
+  "score": 4.6,
+  "tier": "C",
+  "old": {
+   "s": 4,
+   "t": "C"
+  },
+  "ev": "Холодный поиск не подтверждён. Единственная цифра привлечения — 50+ компаний в конкурсные и выставочные программы, механика поиска не описана. В остальном входящие заявки, SEO и процессы.",
+  "verdict": "Профиль процессный и аналитический: выстраивала управление партнёрскими проектами, автоматизировала отчётность, вела интеграции по API — но нигде нет холодного аутрича, переговоров о коммерческих условиях и плана продаж в цифрах.",
+  "risks": [
+   "Нет холодного поиска, скриптов, касаний и конверсий",
+   "Культура, туризм, выставки — без b2b-продаж IT",
+   "Уклон в процессы и координацию подрядчиков",
+   "Нет ни одного показателя выполнения плана продаж"
+  ],
+  "tools": [
+   "SQL",
+   "Excel",
+   "REST API",
+   "AI-инструменты"
+  ]
+ },
+ {
+  "id": "Э1-HR4",
+  "code": "HR4",
+  "company": "TCL Russia · ранее Atos, Canon",
+  "stage": "Этап 1",
+  "slug": "step-1",
+  "pay": "не указаны",
+  "drive": "1f3_39uq_kY-pTiRgwcUkiCajNJ3u3kN_",
+  "hunting": 1.5,
+  "b2b": 2.5,
+  "volume": 2,
+  "solo": 3,
+  "score": 4.4,
+  "tier": "C",
+  "old": {
+   "s": 3,
+   "t": "C"
+  },
+  "ev": "Прямых указаний на холодный поиск нет. Ближайшее — «подобрал, подключил и сопровождаю сервисных партнёров» в 15+ городах, но без источников, каналов и цифр.",
+  "verdict": "Это сервисный и проектный менеджер, а не охотник: ядро резюме — SLA, P&L, бэклоги, документооборот, запчасти, удержание и апсейлы. Подбор сервисных партнёров в пятнадцати городах — закупочная задача найти исполнителя, а не продажа партнёрства.",
+  "risks": [
+   "Холодный поиск и аутрич не подтверждены вообще",
+   "Профиль Client Success и Delivery — сопровождение",
+   "Не готов к командировкам",
+   "Формировал команды до 10 человек"
+  ],
+  "tools": [
+   "Битрикс24",
+   "1С",
+   "ERP",
+   "SQL"
+  ]
+ },
+ {
+  "id": "Э1-HR8",
+  "code": "HR8",
+  "company": "ICL Services · продукт Колибри-АРМ",
+  "stage": "Этап 1",
+  "slug": "step-1",
+  "pay": "не указаны",
+  "drive": "1mK_HF8HAGR7MC7JTMFAjCMtSOCZ79Yxr",
+  "hunting": 1.5,
+  "b2b": 3,
+  "volume": 1,
+  "solo": 3.5,
+  "score": 4.4,
+  "tier": "C",
+  "old": {
+   "s": 4.5,
+   "t": "C"
+  },
+  "ev": "Холодный поиск не подтверждён: нет ни источников, ни инструментов, ни касаний. Описано построение процессов и работа с ключевыми партнёрами, то есть вход в партнёрство, а не его поиск.",
+  "verdict": "Пресейл-инженер, выросший в BDM одного продукта внутри одной компании: сильна в технике, процессах и коммерческой политике, но во всём резюме нет ни одной цифры — ни партнёров, ни выручки, ни плана.",
+  "risks": [
+   "Полное отсутствие количественных результатов",
+   "Enterprise, госсектор, дистрибьюторские контракты",
+   "13 лет в одной компании",
+   "Уклон в presale и процессы"
+  ],
+  "tools": []
+ },
+ {
+  "id": "Э1-HR6",
+  "code": "HR6",
+  "company": "ICL Services · закупки",
+  "stage": "Этап 1",
+  "slug": "step-1",
+  "pay": "не указаны",
+  "drive": "1XKyClY1gLZqPtOFyK9-XxkP34UoQasS3",
+  "hunting": 1.5,
+  "b2b": 1.5,
+  "volume": 1,
+  "solo": 4.5,
+  "score": 4.1,
+  "tier": "C",
+  "old": {
+   "s": 1.5,
+   "t": "C"
+  },
+  "ev": "Есть «поиск поставщиков», но это закупочный поиск под проекты компании, то есть движение денег в обратную сторону. Площадки тендерные, а не для сбора b2b-баз.",
+  "verdict": "Должность называется «менеджер по работе с партнерами», но содержание — вендор-менеджмент и закупки: NDA, RFI/RFP, претензионная работа. Кандидат ищет тех, у кого компания покупает, а нам нужен тот, кто находит приводящих клиентов. Опыта продаж нет совсем.",
+  "risks": [
+   "Профиль закупщика: направление сделки противоположное",
+   "Ни одной цифры по привлечению за 18 лет стажа",
+   "Нет опыта отработки возражений при продаже",
+   "Не готова к переезду"
+  ],
+  "tools": [
+   "b2b-center",
+   "bidzaar",
+   "roseltorg"
+  ]
+ },
+ {
+  "id": "Э1-CV9",
+  "code": "CV9",
+  "company": "Ecourse.studio · ранее Сколково, ФРИИ",
+  "stage": "Этап 1",
+  "slug": "step-1",
+  "pay": "не указаны",
+  "drive": "16LOAjOCniY9O0PWICJOVGt2c67UtDNSS",
+  "hunting": 1.5,
+  "b2b": 2.5,
+  "volume": 1.5,
+  "solo": 1.5,
+  "score": 3.5,
+  "tier": "C",
+  "old": {
+   "s": 3,
+   "t": "C"
+  },
+  "ev": "Холодного аутрича нет: лиды приходили из платного трафика, PR, рассылок и мероприятий, бюджет 10 млн и команда 10+ человек. Партнёрства — девять штучных соглашений, механика поиска не описана.",
+  "verdict": "Это маркетолог-лидогенератор и руководитель, а не холодный продавец: результаты получены бюджетами, подрядчиками и командами. Партнёрств всего девять и все крупные имена, что противоположно нужному потоку.",
+  "risks": [
+   "Команды 8–10 человек и бюджеты — делала не руками",
+   "Холодного поиска нет вообще",
+   "Образование, акселераторы, госзаказчики",
+   "Привлечение строилось на платном трафике и PR"
+  ],
+  "tools": [
+   "AmoCRM",
+   "Битрикс24",
+   "ROIstat",
+   "Sendpulse"
+  ]
+ }
+];
+
+const state = { tier: "all", stage: "all", check: "all" };
+const tbody = document.getElementById("tbody");
+const emptyEl = document.getElementById("empty");
+const LABELS = ["Хантинг и аутрич", "Продажи сложного b2b", "Поток партнёров", "Личный вклад"];
+
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+function segs(v) {
+  let out = "";
+  for (let i = 1; i <= 5; i++) out += '<i class="' + (v >= i - 0.4 ? "on" : "") + '"></i>';
+  return '<span class="seg" aria-hidden="true">' + out + "</span>";
+}
+function fmt(n) { return String(n).replace(".", ","); }
+function cvUrl(id) { return "https://drive.google.com/file/d/" + id + "/view"; }
+function stageUrl(slug) { return "../" + slug + "/"; }
+
+function render() {
+  const rows = DATA.filter(d =>
+    (state.tier === "all" || d.tier === state.tier) &&
+    (state.stage === "all" || d.stage === state.stage) &&
+    (state.check === "all" || (state.check === "flagged" ? !!d.check : !d.check))
+  );
+  tbody.innerHTML = rows.map(d => {
+    const vals = [d.hunting, d.b2b, d.volume, d.solo];
+    const bars = vals.map((v, k) => '<div class="bar"><span>' + LABELS[k] + "</span>" + segs(v) + "</div>").join("");
+    const risks = d.risks.map(t => "<li>" + esc(t) + "</li>").join("");
+    const tools = d.tools.length
+      ? '<div class="tools">' + d.tools.map(t => '<span class="tool">' + esc(t) + "</span>").join("") + "</div>"
+      : '<p style="color:var(--muted)">В резюме не названо ни одного инструмента поиска или CRM.</p>';
+    const diff = +(d.score - d.old.s).toFixed(1);
+    const cls = diff > 0.4 ? "up" : diff < -0.4 ? "down" : "same";
+    const sign = diff > 0 ? "+" : "";
+    const unknown = d.pay.startsWith("не указаны") ? " unknown" : "";
+    return (
+      '<tr class="row t-' + d.tier + '" tabindex="0" role="button" aria-expanded="false">' +
+        '<td><div class="who"><span class="rank">' + (DATA.indexOf(d) + 1) + "</span>" +
+          '<span class="who-text"><b>' + esc(d.code) + (d.check ? ' <span class="flag" title="Требует проверки">⚑</span>' : "") +
+          "</b><span>" + esc(d.company) + "</span></span></div></td>" +
+        '<td><a class="stagechip" href="' + stageUrl(d.slug) + '">' + esc(d.stage) + "</a></td>" +
+        '<td><span class="money' + unknown + '">' + esc(d.pay) + "</span></td>" +
+        '<td class="score"><b>' + fmt(d.score) + '</b><i> / 10</i></td>' +
+        '<td><span class="delta ' + cls + '">' + fmt(d.old.s) + " " + d.old.t + " → " + sign + fmt(diff) + "</span></td>" +
+        '<td><span class="tier ' + d.tier + '">' + d.tier + "</span></td>" +
+        '<td><a class="cvlink" href="' + cvUrl(d.drive) + '" target="_blank" rel="noopener">PDF&nbsp;↗</a></td>' +
+        '<td><span class="chev" aria-hidden="true">▶</span></td>' +
+      "</tr>" +
+      '<tr class="detail" hidden><td colspan="8"><div class="panel"><div>' +
+        '<p class="verdict">' + esc(d.verdict) + "</p>" +
+        '<p class="cvline">' +
+          '<a class="cvlink" href="' + cvUrl(d.drive) + '" target="_blank" rel="noopener">Резюме&nbsp;↗</a>' +
+          '<a class="cvlink" href="' + stageUrl(d.slug) + '">Разбор под прежнюю роль&nbsp;→</a>' +
+        "</p>" +
+        (d.check ? '<div class="block warn"><h4>Требует проверки</h4><p>' + esc(d.check) + "</p></div>" : "") +
+        '<div class="block"><h4>Чем подтверждён холодный поиск</h4><p>' + esc(d.ev) + "</p></div>" +
+        '<div class="block"><h4>Инструменты из резюме</h4>' + tools + "</div>" +
+        '<div class="block"><h4>Риски</h4><ul>' + risks + "</ul></div>" +
+      '</div><div class="bars"><p>Оценка по критериям роли</p>' + bars + "</div></div></td></tr>"
+    );
+  }).join("");
+  emptyEl.hidden = rows.length > 0;
+}
+
+function toggle(row) {
+  const detail = row.nextElementSibling;
+  const open = !detail.hidden;
+  detail.hidden = open;
+  row.classList.toggle("open", !open);
+  row.setAttribute("aria-expanded", String(!open));
+}
+
+tbody.addEventListener("click", e => {
+  if (e.target.closest("a")) return;
+  const row = e.target.closest("tr.row");
+  if (row) toggle(row);
+});
+tbody.addEventListener("keydown", e => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const row = e.target.closest("tr.row");
+  if (row) { e.preventDefault(); toggle(row); }
+});
+
+document.querySelectorAll(".chips").forEach(box => {
+  const key = box.id.replace("f-", "");
+  box.addEventListener("click", e => {
+    const btn = e.target.closest(".chip");
+    if (!btn) return;
+    state[key] = btn.dataset.v;
+    box.querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
+    render();
+  });
+});
+
+document.getElementById("s-a").textContent = DATA.filter(d => d.tier === "A").length;
+document.getElementById("s-b").textContent = DATA.filter(d => d.tier === "B").length;
+document.getElementById("s-c").textContent = DATA.filter(d => d.tier === "C").length;
+render();
+</script>
+</body>
+</html>
