@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<style>
+  /* Базовый сброс: на claude.ai его добавляла платформа, здесь задаём сами */
+  :root {
+    color-scheme: light;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  body { margin: 0; font: 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+</style>
+<title>Хантеры из всех подборок</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Caveat:wght@700&display=swap">
+<style>
+  /* Срез по одному критерию: те, у кого хантинг на максимум */
+  :root {
+    --bg: #1C1C1C; --surface: #242424; --surface-2: #2E2E2E; --line: #3A3A3A;
+    --fg: #F2F2F3; --muted: #9A9A9E; --accent: #FF7545; --accent-soft: rgba(255, 117, 69, .14);
+    --good: #4FBF8B; --warn: #E8B84B; --bad: #E06A5A; --bar-off: #3A3A3A;
+    --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --hand: "Caveat", "Inter", cursive;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #EEEFF5; --surface: #FFFFFF; --surface-2: #F4F5F9; --line: #DFE0E8;
+      --fg: #1C1C1C; --muted: #6B6C76; --accent: #E85A28; --accent-soft: rgba(232, 90, 40, .12);
+      --good: #2E9B6A; --warn: #B88A1C; --bad: #C84A38; --bar-off: #DFE0E8;
+      color-scheme: light;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #EEEFF5; --surface: #FFFFFF; --surface-2: #F4F5F9; --line: #DFE0E8;
+    --fg: #1C1C1C; --muted: #6B6C76; --accent: #E85A28; --accent-soft: rgba(232, 90, 40, .12);
+    --good: #2E9B6A; --warn: #B88A1C; --bad: #C84A38; --bar-off: #DFE0E8;
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  .wrap {
+    max-width: 1180px; margin: 0 auto;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 28px 56px;
+  }
+
+  header { padding-block: 8px 0; }
+  .eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin: 0 0 10px; }
+  h1 { font-size: clamp(28px, 5.4vw, 46px); line-height: 1.08; font-weight: 700; letter-spacing: -.02em; margin: 0 0 14px; text-wrap: balance; max-width: 18ch; }
+  .lede { color: var(--muted); max-width: 64ch; margin: 0; font-size: 16px; }
+  .lede strong { color: var(--fg); font-weight: 600; }
+  .curve { display: block; width: 100%; height: 10px; margin: 26px 0 0; overflow: visible; }
+
+  .stats { display: grid; gap: 10px; margin: 26px 0 0; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 14px 16px; min-width: 0; }
+  .stat b { display: block; font-size: 28px; line-height: 1.1; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .stat span { font-size: 12.5px; color: var(--muted); }
+  .stat.is-good b { color: var(--good); }
+  .stat.is-accent b { color: var(--accent); }
+
+  .callout { background: var(--surface); border: 1px solid var(--accent); border-left-width: 4px; border-radius: 20px; padding: 18px 20px; margin: 34px 0 0; }
+  .callout p { margin: 0 0 10px; }
+  .callout p:last-child { margin: 0; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 18px 28px; align-items: flex-end; margin: 34px 0 16px; }
+  .group { min-width: 0; }
+  .group > p { margin: 0 0 7px; font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font: inherit; font-size: 13px; font-weight: 500; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 20px; padding: 7px 14px; cursor: pointer; transition: .15s; }
+  .chip:hover { border-color: var(--accent); }
+  .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .tablecard { background: var(--surface); border: 1px solid var(--line); border-radius: 28px; overflow: hidden; }
+  .scroller { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 880px; }
+  thead th { text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 14px; border-bottom: 1px solid var(--line); background: var(--surface-2); white-space: nowrap; }
+  thead th.num { text-align: right; }
+  tbody td { padding: 13px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  tr.row { cursor: pointer; }
+  tr.row:hover td { background: var(--surface-2); }
+  tr.row.open td { background: var(--accent-soft); }
+  .who { display: flex; align-items: center; gap: 11px; min-width: 0; }
+  .rank { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
+  tr.row.t-A .rank { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .who-text { min-width: 0; }
+  .who-text b { display: block; font-weight: 600; font-size: 14.5px; }
+  .who-text span { display: block; font-size: 12.5px; color: var(--muted); }
+  .stagechip { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--line); background: var(--surface-2); color: var(--muted); white-space: nowrap; text-decoration: none; display: inline-block; transition: .15s; }
+  a.stagechip:hover { border-color: var(--accent); color: var(--accent); }
+  .money { font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .money.unknown { color: var(--muted); font-style: italic; }
+  .score { text-align: right; white-space: nowrap; }
+  .score b { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .score i { font-style: normal; font-size: 12px; color: var(--muted); }
+  .tier { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 7px; font-size: 12px; font-weight: 700; }
+  .tier.A { background: var(--good); color: #0d1f17; }
+  .tier.B { background: var(--warn); color: #231c05; }
+  .tier.C { background: var(--bar-off); color: var(--muted); }
+  .chev { color: var(--muted); font-size: 12px; transition: transform .18s; display: inline-block; }
+  tr.row.open .chev { transform: rotate(90deg); color: var(--accent); }
+  .cvlink { color: var(--accent); text-decoration: none; font-size: 12.5px; font-weight: 600; border: 1px solid var(--line); border-radius: 20px; padding: 4px 10px; white-space: nowrap; display: inline-block; transition: .15s; }
+  .cvlink:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .cvlink:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .cvline { margin: -6px 0 14px; display: flex; flex-wrap: wrap; gap: 8px; }
+
+  tr.detail > td { padding: 0; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+  .panel { padding: 18px 16px 22px; display: grid; gap: 18px; }
+  @media (min-width: 760px) { .panel { grid-template-columns: 1fr 280px; align-items: start; } }
+  .verdict { margin: 0 0 14px; font-size: 15px; }
+  .pm { display: grid; gap: 14px; }
+  @media (min-width: 560px) { .pm { grid-template-columns: 1fr 1fr; } }
+  .pm h4 { margin: 0 0 6px; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
+  .pm .p h4 { color: var(--good); }
+  .pm .m h4 { color: var(--bad); }
+  .pm ul { margin: 0; padding-left: 17px; }
+  .pm li { margin-bottom: 5px; font-size: 13.5px; }
+  .pm li::marker { color: var(--muted); }
+  .bars { display: grid; gap: 8px; }
+  .bars > p { margin: 0 0 2px; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .bar { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+  .bar span { font-size: 12.5px; color: var(--muted); }
+  .bar.top span { color: var(--accent); font-weight: 600; }
+  .seg { display: flex; gap: 3px; }
+  .seg i { width: 13px; height: 6px; border-radius: 3px; background: var(--bar-off); }
+  .seg i.on { background: var(--accent); }
+  .note { font-family: var(--hand); font-size: 20px; color: var(--accent); line-height: 1.25; margin: 16px 0 0; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 12.5px; max-width: 80ch; }
+  .empty { padding: 34px 18px; text-align: center; color: var(--muted); font-size: 14px; }
+</style>
+<style>
+  /* Навигация между страницами — добавляется только в версии для сайта */
+  .sitenav { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 24px; padding: 0; list-style: none; }
+  .sitenav a, .sitenav span {
+    font-size: 13px; font-weight: 500; line-height: 1.2;
+    padding: 8px 14px; border-radius: 20px; border: 1px solid var(--line);
+    text-decoration: none; display: inline-block; transition: .15s;
+  }
+  .sitenav a { color: var(--accent); background: var(--surface); }
+  .sitenav a:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .sitenav a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .sitenav span { color: var(--fg); background: var(--accent-soft); border-color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="sitenav" aria-label="Страницы подбора"><a href="../">← Все этапы</a><a href="../step-1/">Этап 1 · 17</a><a href="../step-2/">Этап 2 · 6</a><a href="../step-3/">Этап 3 · 13</a><span aria-current="page">Хантеры · 7</span></nav>
+  <header>
+    <p class="eyebrow">Звонок · подбор · срез по критерию</p>
+    <h1>Те, кто умеет искать сам</h1>
+    <p class="lede">Семеро из тридцати шести просмотренных кандидатов, у кого по критерию <strong>«Хантинг и аутрич» стоит максимум — 5 из 5</strong>. Это люди, которые собирали базы и стучались в закрытые двери руками, а не получали входящие и не управляли теми, кто искал за них.</p>
+    <svg class="curve" viewBox="0 0 1180 10" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 8 C 260 8, 300 2, 560 2 S 920 8, 1180 3" fill="none" stroke="#FF7545" stroke-width="8" stroke-linecap="round"/>
+    </svg>
+  </header>
+
+  <div class="stats">
+    <div class="stat is-accent"><b>7</b><span>из 36 кандидатов</span></div>
+    <div class="stat is-good"><b>4</b><span>из них в приоритете A</span></div>
+    <div class="stat"><b>3</b><span>этапа подбора</span></div>
+    <div class="stat"><b>19%</b><span>доля от всех просмотренных</span></div>
+  </div>
+
+  <div class="callout">
+    <p><strong>Зачем этот срез.</strong> Хантинг — единственный из шести критериев, который нельзя добрать обучением за испытательный срок. Механике партнёрского канала, экономике интегратора и работе в амо человека научить можно; привычке самому собирать лонг-листы и писать первое касание — нет. Поэтому список тех, у кого эта графа закрыта полностью, полезно держать отдельно.</p>
+    <p><strong>Как им пользоваться.</strong> Высокая оценка по хантингу не означает общую пригодность: итоговый балл у этих семерых от 5 до 9, и один из них сидит в приоритете C. Срез отвечает не на вопрос «кого брать», а на вопрос «кто точно умеет искать» — дальше смотрите, чего каждому не хватает, в раскрытой карточке.</p>
+    <p><strong>Коды не уникальны между этапами.</strong> CV6 первого этапа и CV6 второго — разные люди, как и CV8 первого и третьего. Поэтому в таблице этап указан рядом с кодом, и из каждой строки можно уйти на полный разбор того этапа.</p>
+  </div>
+
+  <div class="controls">
+    <div class="group">
+      <p>Приоритет</p>
+      <div class="chips" id="f-tier">
+        <button class="chip" type="button" data-v="all" aria-pressed="true">Все</button>
+        <button class="chip" type="button" data-v="A" aria-pressed="false">A</button>
+        <button class="chip" type="button" data-v="B" aria-pressed="false">B</button>
+        <button class="chip" type="button" data-v="C" aria-pressed="false">C</button>
+      </div>
+    </div>
+    <div class="group">
+      <p>Этап</p>
+      <div class="chips" id="f-stage">
+        <button class="chip" type="button" data-v="all" aria-pressed="true">Все</button>
+        <button class="chip" type="button" data-v="Этап 1" aria-pressed="false">Первый</button>
+        <button class="chip" type="button" data-v="Этап 2" aria-pressed="false">Второй</button>
+        <button class="chip" type="button" data-v="Этап 3" aria-pressed="false">Третий</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tablecard">
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Кандидат</th>
+            <th scope="col">Этап</th>
+            <th scope="col">Ожидания</th>
+            <th scope="col" class="num">Оценка</th>
+            <th scope="col">Приоритет</th>
+            <th scope="col">Резюме</th>
+            <th scope="col"><span aria-hidden="true">&nbsp;</span></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="empty" id="empty" hidden>Под этот фильтр никто не попадает.</div>
+  </div>
+
+  <p class="note">Строку можно развернуть — внутри плюсы, минусы и разбивка по критериям того этапа.</p>
+
+  <footer>
+    Срез собран автоматически из страниц трёх этапов по одному полю — первой оценке в разбивке по критериям. Тексты вердиктов, плюсов и минусов перенесены из разборов без изменений, итоговые баллы и приоритеты тоже. На первом этапе критериев было шесть, на втором и третьем — семь, поэтому разбивка в карточках у кандидатов разной длины; графа «Хантинг и аутрич» в обоих наборах идёт первой и считается одинаково. Ссылки на PDF ведут в папки Google Drive соответствующего этапа.
+  </footer>
+</div>
+
+<script>
+const DATA = [
+ {
+  "stage": "Этап 1",
+  "slug": "step-1",
+  "code": "CV6",
+  "role": "Business development manager",
+  "co": "Roistat · сквозная аналитика",
+  "pay": "не указаны",
+  "score": 9,
+  "tier": "A",
+  "bars": [
+   5,
+   5,
+   5,
+   4,
+   4,
+   5
+  ],
+  "labels": [
+   "Хантинг и аутрич",
+   "Сегменты партнёров",
+   "IT / SaaS / digital",
+   "Продажи сложного b2b",
+   "Активация и ко-продажи",
+   "Масштаб сети"
+  ],
+  "drive": "1xnVp96mYMOJtGeHqT9GWmJpluEMfIp9C",
+  "verdict": "Главный кандидат: партнёрская модель Roistat действительно очень похожа на нашу, и аудитория та же — digital- и performance-агентства, веб-студии, интеграторы. Вопросы к нему не про релевантность опыта, а про мотивацию и готовность хантить руками.",
+  "plus": [
+   "+200 новых партнёров, база ×2, GMV +300% — хантерские цифры, а не сопроводительные",
+   "Интеграции с Click.ru, Jivo, Ingate — буквально ваши сегменты",
+   "Сократил SLA подключения партнёра в 2 раза, построил сегментацию лидов: срезал 60% нерелевантных без потери конверсии",
+   "До IT — 7 лет дистрибуции с мотивационными программами для партнёров: экономику партнёра понимает нутром"
+  ],
+  "minus": [
+   "Опять человек из Roistat: Владиславу, которую мы уволили, брали оттуда же. Совпадение неприятное — зато про неё можно спросить прямо у него",
+   "Бэкграунд продажно-биздевовский: надо понять, готов ли он руками скаутить сегменты и собирать лонг-листы, а не только вести переговоры и считать экономику",
+   "Ушёл из Roistat в феврале 2026, пробел ~8 месяцев — выяснить причину в первую очередь",
+   "Собрал и обучил команду из 6 менеджеров — может целиться в руководящую роль и в вилку выше 250",
+   "Английский A1 (для задачи некритично)"
+  ]
+ },
+ {
+  "stage": "Этап 1",
+  "slug": "step-1",
+  "code": "CV8",
+  "role": "Менеджер по работе с партнёрами",
+  "co": "CloudPayments · эквайринг",
+  "pay": "не указаны",
+  "score": 8,
+  "tier": "A",
+  "bars": [
+   5,
+   5,
+   4,
+   3,
+   3,
+   4
+  ],
+  "labels": [
+   "Хантинг и аутрич",
+   "Сегменты партнёров",
+   "IT / SaaS / digital",
+   "Продажи сложного b2b",
+   "Активация и ко-продажи",
+   "Масштаб сети"
+  ],
+  "drive": "1bbzHGhdlSbCophBmC-Sqz8VV-jHMPCVa",
+  "verdict": "Лучшая скорость хантинга на единицу стажа. Сегменты партнёров в резюме перечислены буквально вашими словами.",
+  "plus": [
+   "100+ партнёров за год, +80% активной базы, перевыполнение плана по привлечению до 160% в квартал",
+   "Холодный поиск своими руками, оптимизация скриптов, награда Impact of the Year",
+   "Партнёры — CMS/CRM-платформы, digital-агентства, разработчики, бухгалтерские сервисы",
+   "Продавала эквайринг и облачные кассы: сложный технический продукт в SMB через канал",
+   "Самостоятельно настраивала AmoCRM, план продаж 120%+ несколько кварталов подряд"
+  ],
+  "minus": [
+   "В партнёрке всего 1 год 11 месяцев: до этого — чистые продажи франшиз, а до 2019 года вообще другая сфера",
+   "Смутный карьерный трек: отель, потом франшизы, потом сразу такой рост. Последнее место обязательно валидировать рекомендациями",
+   "При 160% плана по привлечению непонятно, почему уходит — это первый вопрос на встрече",
+   "Реального b2b-опыта ~3 года: крепкий middle, не senior; вопрос веса в переговорах с собственниками агентств",
+   "Не проверено, вытянет ли самостоятельную нарезку сегментов без руководителя сверху"
+  ]
+ },
+ {
+  "stage": "Этап 1",
+  "slug": "step-1",
+  "code": "CV4",
+  "role": "Руководитель партнёрского и агентского направления",
+  "co": "Fintech",
+  "pay": "не указаны",
+  "score": 7.5,
+  "tier": "A",
+  "bars": [
+   5,
+   2,
+   1,
+   5,
+   5,
+   4
+  ],
+  "labels": [
+   "Хантинг и аутрич",
+   "Сегменты партнёров",
+   "IT / SaaS / digital",
+   "Продажи сложного b2b",
+   "Активация и ко-продажи",
+   "Масштаб сети"
+  ],
+  "drive": "1TiL-GSgqttFMI2hDhkPK5n-Py-9xKpDy",
+  "verdict": "Самый «построитель канала руками». Единственная, кто делала вашу задачу целиком — от нуля до первых продаж партнёров.",
+  "plus": [
+   "За 3 месяца собрала агентскую базу с нуля; обороты направления превысили розничный и корпоративный блоки",
+   "Цикл тренингов для внешних партнёров дал +30% к конверсии сделок — это и есть «научить отдел продаж партнёра»",
+   "Сильные личные продажи: ВТБ 120%+ плана квартал за кварталом, 300+ презентаций, 30 корпклиентов",
+   "В навыках прямо указаны холодные продажи и разработка скриптов"
+  ],
+  "minus": [
+   "Весь опыт — финсектор; экономику digital-агентств и интеграторов amoCRM придётся осваивать с нуля",
+   "Титул руководителя и опыт управления 100+ сотрудниками — проверить готовность быть единственным исполнителем",
+   "Риск ожиданий выше вилки"
+  ]
+ },
+ {
+  "stage": "Этап 3",
+  "slug": "step-3",
+  "code": "CV8",
+  "role": "Business Development Manager",
+  "co": "Контур · ИБ-сервисы, ранее Контур SaaS для МСБ",
+  "pay": "200 тыс.",
+  "score": 7.5,
+  "tier": "A",
+  "bars": [
+   5,
+   4,
+   3,
+   4.5,
+   5,
+   4,
+   2
+  ],
+  "labels": [
+   "Хантинг и аутрич",
+   "Поток мелких партнёров",
+   "Сегменты партнёров",
+   "IT / SaaS / digital",
+   "Личные продажи",
+   "Своя система и автономность",
+   "Активация партнёров"
+  ],
+  "drive": "1EPN1NIdKvFijVywN5YP_3eMju_BcB7JZ",
+  "verdict": "Лучший ручной продавец из всех, кого мы смотрели. Цифры выполнения плана такие, каких в трёх подборках больше ни у кого нет, а главное — он сам нашёл новый сегмент рынка, проверил на нём гипотезу и поставил рекорд. Партнёрского канала при этом почти не строил.",
+  "plus": [
+   "Десять кварталов подряд в Контуре от 133% до 228% плана, абсолютный лидер по Московскому региону — 182% годового плана за 6 месяцев",
+   "Выявил новый рыночный сегмент, сам сформировал и подтвердил гипотезу выхода на него, и это дало рекорд продаж по продукту среди всех менеджеров компании в РФ. Это буквально наша задача про скаутинг сегментов",
+   "Конверсия по поиску ЛПР и его контактов — 74%. Человек умеет добывать контакты, а не ждать списков",
+   "3,5 года продавал SaaS малому и среднему бизнесу (Контур.Фокус и Контур.Компас) — понимает мелкий чек и поток, а Компас вообще про сбор b2b-баз",
+   "В Астрале два квартала подряд 213% и 241%, крупнейшая сделка отдела закрыта через холодный поиск",
+   "Составил батл-карты, которые подняли конверсию в тестирование на 17%; передал 20+ feature-реквестов в продукт, 6 ушли в roadmap",
+   "Ведёт pipeline в Bitrix24, считает TAM/SAM/SOM, проводит CustDev"
+  ],
+  "minus": [
+   "Партнёрского канала практически нет: в текущей роли это одна строка про ИТ-интеграторов, без цифр",
+   "Последние три года — enterprise ИБ, ТОП-500 РФ, циклы сделок 7–9 месяцев. Отвыкнуть от длинного цикла придётся сознательно",
+   "Активации партнёров в опыте нет вообще: он продавал сам, а не учил продавать других",
+   "Вся карьера — прямые продажи. Мысль «мой результат делают чужие руки» для него новая, и это главный риск",
+   "200 тыс. — середина вилки, но с его перевыполнениями он привык к крупным бонусам"
+  ]
+ },
+ {
+  "stage": "Этап 3",
+  "slug": "step-3",
+  "code": "CV2",
+  "role": "Business Development Manager",
+  "co": "Mitgo · ранее два affiliate-стартапа",
+  "pay": "200 тыс.",
+  "score": 7,
+  "tier": "B",
+  "bars": [
+   5,
+   5,
+   3,
+   2.5,
+   4.5,
+   4,
+   3
+  ],
+  "labels": [
+   "Хантинг и аутрич",
+   "Поток мелких партнёров",
+   "Сегменты партнёров",
+   "IT / SaaS / digital",
+   "Личные продажи",
+   "Своя система и автономность",
+   "Активация партнёров"
+  ],
+  "drive": "1MXS7A0b_48I_jbDbi0yWOtz1Ta7sEoX9",
+  "verdict": "Самый яркий хантер подборки по чистым цифрам: 303 привлечённых партнёра и год полностью самостоятельной работы в стартапе без руководителя над головой. Весь опыт при этом в affiliate — её партнёры льют трафик, а не продают продукт своим клиентам.",
+  "plus": [
+   "Привела 303 партнёра в одном из проектов — крупнейшая цифра по привлечению во всех трёх подборках",
+   "Год работала в стартапе полностью самостоятельно, без тимлида и руководителя: поиск партнёров, интеграция, контроль качества трафика, выплаты, отчётность. Это прямой ответ на наш критерий автономности",
+   "Прямым текстом холодный поиск и привлечение вебмастеров, агентств, рекламных и партнёрских сетей",
+   "Проявила инициативу за пределами своей роли: привела в компанию трёх ключевых сотрудников, чтобы достроить процессы",
+   "Внедрила гибридную модель Fix+CPA/RevShare вместо голых CPA или RevShare — умеет конструировать условия под партнёра",
+   "Нетворкинг на профильных конференциях, в том числе зарубежных"
+  ],
+  "minus": [
+   "Партнёр в её мире зарабатывает на ставке за трафик. Наш партнёр продаёт наш продукт своей клиентской базе — это другой разговор, и опыта такого разговора нет",
+   "Продукт всегда был рекламный, а не b2b-SaaS со сложной ценностью",
+   "Два места работы указаны как NDA без названий компаний, и по описанию это арбитражная вертикаль. Стоит выяснить, что за проекты",
+   "Активации в нашем смысле не было: партнёра не нужно было учить продавать, его нужно было подключить и следить за фродом",
+   "Свободна с апреля 2026 — выяснить, чем занималась эти месяцы"
+  ]
+ },
+ {
+  "stage": "Этап 2",
+  "slug": "step-2",
+  "code": "CV6",
+  "role": "New business manager",
+  "co": "Digital Lab · ранее Яндекс, Diginetica, 2ГИС",
+  "pay": "от 180 тыс. + KPI",
+  "score": 6,
+  "tier": "B",
+  "bars": [
+   5,
+   3,
+   4,
+   3,
+   5,
+   2.5,
+   2
+  ],
+  "labels": [
+   "Хантинг и аутрич",
+   "Поток мелких партнёров",
+   "Сегменты партнёров",
+   "IT / SaaS / digital",
+   "Личные продажи",
+   "Своя система и автономность",
+   "Активация партнёров"
+  ],
+  "drive": "1HZrVjub4PBLvb32UbzGbBWjcqBrzWOLW",
+  "verdict": "Самый «ручной» искальщик подборки: холодные звонки и поиск через соцсети на четырёх местах подряд, плюс три года изнутри креативного агентства. Партнёрской роли при этом не было ни одной — везде прямые продажи.",
+  "plus": [
+   "Холодный поиск на четырёх местах подряд: 2ГИС, Diginetica, Сбер Здоровье, Яндекс. Звонки, соцсети и LinkedIn, конференции и бизнес-завтраки — ровно тот арсенал скаутинга, который нам нужен",
+   "Три года в креативном агентстве на привлечении новых клиентов: опыт «с той стороны», понимает, как агентство зарабатывает и чем живёт",
+   "В Diginetica продавал SaaS для ритейлеров через холод и вёл всё в amoCRM, сам делал аудит точек роста у клиента перед встречей",
+   "В Сбер Здоровье работал по агентской схеме с МФО, страховыми и парками развлечений — продажи через посредников в некрупном сегменте",
+   "В Яндексе перевыполнял план на 150%+, был лучшим по выручке в группе и обучал других холодным звонкам",
+   "Снимал видеоконтент для холодного первого касания — редкая креативность в аутриче"
+  ],
+  "minus": [
+   "Партнёрского канала не строил ни разу: «ключевые партнёры» в Яндексе означают крупных клиентов-закупщиков, а не партнёров, которые приводят клиентов",
+   "За три года в Digital Lab ни одной цифры результата",
+   "Резюме написано очень слабо: простыня из двух десятков общих буллетов с повторами, а в саммари — список личных качеств и целевые роли от event-менеджера до начальника транспортного отдела. Для роли, где человек сам собирает предложение под партнёра, это настораживает",
+   "Последние места — крупный бизнес и enterprise",
+   "Своей системы учёта в опыте нет: амо использовал, но как пользователь",
+   "180 тыс. плюс KPI — верхняя часть вилки для профиля без партнёрского опыта"
+  ]
+ },
+ {
+  "stage": "Этап 1",
+  "slug": "step-1",
+  "code": "HR7",
+  "role": "Менеджер развития бизнеса, ЛатАм",
+  "co": "НТЦ ТЕКО · промышленная электроника",
+  "pay": "не указаны, готов в МСК",
+  "score": 5,
+  "tier": "C",
+  "bars": [
+   5,
+   1.5,
+   2,
+   4.5,
+   3.5,
+   4.5
+  ],
+  "labels": [
+   "Хантинг и аутрич",
+   "Сегменты партнёров",
+   "IT / SaaS / digital",
+   "Продажи сложного b2b",
+   "Активация и ко-продажи",
+   "Масштаб сети"
+  ],
+  "drive": "16EUCblrnZIeGVovMvH3slt6a1LfDEqby",
+  "verdict": "Хантерская привычка настоящая, и по ней он один из лучших в выборке. Но сети он строил из дистрибьюторов промышленного оборудования на экспортных рынках, и от нашей задачи это отличается всем, кроме самого умения искать.",
+  "plus": [
+   "Дистрибьюторская сеть в 9 странах ЛатАм с нуля, рост экспорта +421%",
+   "Исследование рынка, сегментация, стратегия выхода — ровно навык «разложить рынок и собрать лонг-лист»",
+   "Переговоры с собственниками и первыми лицами, контракт на оснащение 11 000 вышек телеком-оператору Колумбии",
+   "Нанял и вёл команду из 4 человек в регионе; технический бэкграунд, понимает API, SDK и интеграции",
+   "Испанский и английский C2, готов к переезду в Москву"
+  ],
+  "minus": [
+   "Промышленная электроника и охранно-пожарная сигнализация, не IT/SaaS/digital",
+   "Партнёры — дистрибьюторы оборудования, а не digital-агентства и CRM-интеграторы",
+   "Нет опыта на внутреннем рынке РФ: весь трек — экспорт",
+   "Подписочной экономики и SaaS-метрик в опыте нет"
+  ]
+ }
+];
+
+const TIER_ORDER = { A: 0, B: 1, C: 2 };
+const state = { tier: "all", stage: "all" };
+const tbody = document.getElementById("tbody");
+const emptyEl = document.getElementById("empty");
+
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+function segs(v) {
+  let out = "";
+  for (let i = 1; i <= 5; i++) out += '<i class="' + (v >= i - 0.4 ? "on" : "") + '"></i>';
+  return '<span class="seg" aria-hidden="true">' + out + "</span>";
+}
+function fmtScore(n) { return String(n).replace(".", ","); }
+function cvUrl(id) { return "https://drive.google.com/file/d/" + id + "/view"; }
+function stageUrl(slug) { return "../" + slug + "/"; }
+
+function render() {
+  const rows = DATA.filter(d =>
+    (state.tier === "all" || d.tier === state.tier) &&
+    (state.stage === "all" || d.stage === state.stage)
+  );
+  tbody.innerHTML = rows.map(d => {
+    const bars = d.bars.map((v, k) =>
+      '<div class="bar' + (k === 0 ? " top" : "") + '"><span>' + esc(d.labels[k]) + "</span>" + segs(v) + "</div>"
+    ).join("");
+    const plus = d.plus.map(t => "<li>" + esc(t) + "</li>").join("");
+    const minus = d.minus.map(t => "<li>" + esc(t) + "</li>").join("");
+    const unknown = d.pay.startsWith("не указаны") ? " unknown" : "";
+    return (
+      '<tr class="row t-' + d.tier + '" tabindex="0" role="button" aria-expanded="false">' +
+        '<td><div class="who"><span class="rank">' + (DATA.indexOf(d) + 1) + "</span>" +
+          '<span class="who-text"><b>' + esc(d.code) + " · " + esc(d.role) + "</b><span>" + esc(d.co) + "</span></span></div></td>" +
+        '<td><a class="stagechip" href="' + stageUrl(d.slug) + '">' + esc(d.stage) + "</a></td>" +
+        '<td><span class="money' + unknown + '">' + esc(d.pay) + "</span></td>" +
+        '<td class="score"><b>' + fmtScore(d.score) + '</b><i> / 10</i></td>' +
+        '<td><span class="tier ' + d.tier + '">' + d.tier + "</span></td>" +
+        '<td><a class="cvlink" href="' + cvUrl(d.drive) + '" target="_blank" rel="noopener" title="Открыть резюме в Google Drive">PDF&nbsp;↗</a></td>' +
+        '<td><span class="chev" aria-hidden="true">▶</span></td>' +
+      "</tr>" +
+      '<tr class="detail" hidden><td colspan="7"><div class="panel"><div>' +
+        '<p class="verdict">' + esc(d.verdict) + "</p>" +
+        '<p class="cvline">' +
+          '<a class="cvlink" href="' + cvUrl(d.drive) + '" target="_blank" rel="noopener">Резюме в Google Drive&nbsp;↗</a>' +
+          '<a class="cvlink" href="' + stageUrl(d.slug) + '">Полный разбор: ' + esc(d.stage.toLowerCase()) + '&nbsp;→</a>' +
+        "</p>" +
+        '<div class="pm"><div class="p"><h4>Сильные стороны</h4><ul>' + plus + "</ul></div>" +
+        '<div class="m"><h4>Чего не хватает</h4><ul>' + minus + "</ul></div></div>" +
+      '</div><div class="bars"><p>Оценка по критериям ' + esc(d.stage.toLowerCase()) + '</p>' + bars + "</div></div></td></tr>"
+    );
+  }).join("");
+  emptyEl.hidden = rows.length > 0;
+}
+
+function toggle(row) {
+  const detail = row.nextElementSibling;
+  const open = !detail.hidden;
+  detail.hidden = open;
+  row.classList.toggle("open", !open);
+  row.setAttribute("aria-expanded", String(!open));
+}
+
+tbody.addEventListener("click", e => {
+  if (e.target.closest("a")) return;
+  const row = e.target.closest("tr.row");
+  if (row) toggle(row);
+});
+tbody.addEventListener("keydown", e => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const row = e.target.closest("tr.row");
+  if (row) { e.preventDefault(); toggle(row); }
+});
+
+document.querySelectorAll(".chips").forEach(box => {
+  const key = box.id.replace("f-", "");
+  box.addEventListener("click", e => {
+    const btn = e.target.closest(".chip");
+    if (!btn) return;
+    state[key] = btn.dataset.v;
+    box.querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
+    render();
+  });
+});
+
+render();
+</script>
+</body>
+</html>
